@@ -12,6 +12,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../competition/providers/competition_provider.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
 import '../../onboarding/screens/location_setup_screen.dart';
+import '../../sharing/screens/invite_stats_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -217,6 +218,52 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Invite Squad Banner
+              InkWell(
+                borderRadius: AppSpacing.roundedLg,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const InviteStatsScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCardSolid,
+                    borderRadius: AppSpacing.roundedLg,
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.group_add_rounded, color: AppColors.primary, size: 28),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'INVITE FRIENDS & CHALLENGE',
+                              style: AppTypography.headingSmall.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Share your card, challenge 1-on-1, and track squad signups',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
 

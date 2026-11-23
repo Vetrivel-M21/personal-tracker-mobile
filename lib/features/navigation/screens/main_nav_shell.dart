@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../competition/screens/leaderboard_screen.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
-import '../../demo/screens/design_system_demo_screen.dart';
 import '../../home/screens/home_screen.dart';
+import '../../sharing/screens/invite_stats_screen.dart';
 
 class MainNavShell extends StatefulWidget {
   final int initialTab;
@@ -21,7 +21,7 @@ class _MainNavShellState extends State<MainNavShell> {
     HomeScreen(),
     LeaderboardScreen(),
     SubmitAttemptScreen(),
-    DesignSystemDemoScreen(),
+    InviteStatsScreen(),
   ];
 
   @override
@@ -57,9 +57,9 @@ class _MainNavShellState extends State<MainNavShell> {
             label: 'Challenge',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.palette_outlined),
-            activeIcon: Icon(Icons.palette, color: AppColors.primary),
-            label: 'System UI',
+            icon: Icon(Icons.group_outlined),
+            activeIcon: Icon(Icons.group, color: AppColors.primary),
+            label: 'Squad',
           ),
         ],
       ),

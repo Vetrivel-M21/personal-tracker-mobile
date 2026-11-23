@@ -163,3 +163,36 @@ class LeaderboardResponseModel {
   }
 }
 
+/// Data model representing referral and invite stats for the user.
+class ReferralStatsModel {
+  final String referralCode;
+  final int inviteCount;
+  final int verifiedInvitesCount;
+  final int activeCompetitorsCount;
+
+  const ReferralStatsModel({
+    required this.referralCode,
+    required this.inviteCount,
+    required this.verifiedInvitesCount,
+    required this.activeCompetitorsCount,
+  });
+
+  factory ReferralStatsModel.fromJson(Map<String, dynamic> json) {
+    return ReferralStatsModel(
+      referralCode: json['referral_code'] as String? ?? '',
+      inviteCount: json['invite_count'] as int? ?? 0,
+      verifiedInvitesCount: json['verified_invites_count'] as int? ?? 0,
+      activeCompetitorsCount: json['active_competitors_count'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'referral_code': referralCode,
+      'invite_count': inviteCount,
+      'verified_invites_count': verifiedInvitesCount,
+      'active_competitors_count': activeCompetitorsCount,
+    };
+  }
+}
+

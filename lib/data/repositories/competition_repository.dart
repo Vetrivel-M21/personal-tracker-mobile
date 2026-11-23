@@ -61,9 +61,15 @@ class CompetitionRepository {
 
   /// Lists all attempts submitted by the current authenticated user.
   Future<List<AttemptModel>> getMyAttempts() async {
-    final response = await apiClient.dio.get('/api/competition/attempts/my');
+    final response = await apiClient.dio.get('/api/competition/attempts/mine');
     final list = response.data as List<dynamic>? ?? [];
     return list.map((item) => AttemptModel.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  /// Fetches referral code, friend invites count, and active competitors count.
+  Future<ReferralStatsModel> getReferralStats() async {
+    final response = await apiClient.dio.get('/api/referrals/stats');
+    return ReferralStatsModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// Updates user location (State, District, Area) through profile update.

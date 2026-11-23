@@ -10,6 +10,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
 import '../../competition/providers/competition_provider.dart';
+import '../../sharing/screens/invite_stats_screen.dart';
 import '../engine/rep_counter_engine.dart';
 import '../services/pose_detector_service.dart';
 import '../widgets/pose_painter.dart';
@@ -198,12 +199,31 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
           ],
         ),
         actions: [
-          PrimaryButton(
-            text: 'VIEW LEADERBOARD',
-            onPressed: () {
-              Navigator.of(context).pop(); // dialog
-              Navigator.of(context).pop(); // screen
-            },
+          Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  text: 'SHARE CARD',
+                  icon: Icons.share_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const InviteStatsScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: PrimaryButton(
+                  text: 'LEADERBOARD',
+                  onPressed: () {
+                    Navigator.of(context).pop(); // dialog
+                    Navigator.of(context).pop(); // screen
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
