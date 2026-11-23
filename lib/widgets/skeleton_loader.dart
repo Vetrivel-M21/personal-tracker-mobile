@@ -56,3 +56,4 @@ class _SkeletonLoaderState extends State<SkeletonLoader> with SingleTickerProvid
     );
   }
 }
+

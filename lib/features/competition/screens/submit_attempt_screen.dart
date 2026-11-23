@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
+import '../../counter/screens/ai_counter_screen.dart';
 import '../providers/competition_provider.dart';
 
 class SubmitAttemptScreen extends ConsumerStatefulWidget {
@@ -84,6 +85,59 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // AI Camera Counter Promo Banner
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.15),
+                      AppColors.secondary.withValues(alpha: 0.15),
+                    ],
+                  ),
+                  borderRadius: AppSpacing.roundedLg,
+                  border: Border.all(color: AppColors.primary),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.camera_alt, color: AppColors.primary, size: 28),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('AI CAMERA COUNTER', style: AppTypography.headingSmall),
+                          Text(
+                            'Automatic on-device push-up counting with joint pose detection.',
+                            style: AppTypography.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(
+                      width: 90,
+                      height: 38,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.bgMain,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedSm),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const AiCounterScreen()),
+                          );
+                        },
+                        child: Text('TRY AI', style: AppTypography.button.copyWith(fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Exercise Selection
               Text('EXERCISE', style: AppTypography.headingSmall),
               const SizedBox(height: AppSpacing.xs),

@@ -62,3 +62,4 @@ class RankBadge extends StatelessWidget {
     );
   }
 }
+

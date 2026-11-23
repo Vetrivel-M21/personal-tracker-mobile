@@ -290,3 +290,4 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
     );
   }
 }
+

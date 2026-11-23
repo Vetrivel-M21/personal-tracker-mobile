@@ -117,3 +117,4 @@ class TamilNaduLocations {
     return popularAreasByDistrict[district] ?? ['Central', 'North', 'South', 'East', 'West'];
   }
 }
+

@@ -11,3 +11,4 @@ class AppConfig {
   static const String appName = 'Aura Fitness Challenge';
   static const String clientHeaderValue = 'mobile';
 }
+

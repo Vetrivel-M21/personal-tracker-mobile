@@ -37,3 +37,4 @@ class LevelBadge extends StatelessWidget {
     );
   }
 }
+

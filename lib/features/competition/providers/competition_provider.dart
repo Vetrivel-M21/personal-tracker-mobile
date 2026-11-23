@@ -217,3 +217,4 @@ final attemptsNotifierProvider =
   final repository = ref.watch(competitionRepositoryProvider);
   return AttemptsNotifier(repository);
 });
+

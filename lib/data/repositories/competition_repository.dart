@@ -88,3 +88,4 @@ class CompetitionRepository {
     return UserModel.fromJson(response.data as Map<String, dynamic>);
   }
 }
+
