@@ -34,6 +34,19 @@ class AppColors {
   static const Color dangerGlow = Color(0x4DEF4444);
   static const Color dangerMuted = Color(0x1AEF4444);
 
+  // Design Token Aliases (Const Colors)
+  static const Color accentGreen = Color(0xFF10B981);
+  static const Color accentGold = Color(0xFFF59E0B);
+  static const Color accentRed = Color(0xFFEF4444);
+
+  static BoxShadow glowShadow(Color color) {
+    return BoxShadow(
+      color: color.withValues(alpha: 0.35),
+      blurRadius: 12,
+      spreadRadius: 1,
+    );
+  }
+
   static const Color orange = Color(0xFFF97316); // Streak / Discipline
   static const Color orangeGlow = Color(0x4DF97316);
   static const Color orangeMuted = Color(0x1AF97316);

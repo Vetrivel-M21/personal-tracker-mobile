@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../competition/screens/leaderboard_screen.dart';
+import '../../competition/screens/submit_attempt_screen.dart';
 import '../../demo/screens/design_system_demo_screen.dart';
 import '../../home/screens/home_screen.dart';
 
 class MainNavShell extends StatefulWidget {
-  const MainNavShell({super.key});
+  final int initialTab;
+
+  const MainNavShell({super.key, this.initialTab = 0});
 
   @override
   State<MainNavShell> createState() => _MainNavShellState();
 }
 
 class _MainNavShellState extends State<MainNavShell> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   final _screens = const [
     HomeScreen(),
+    LeaderboardScreen(),
+    SubmitAttemptScreen(),
     DesignSystemDemoScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTab;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +47,19 @@ class _MainNavShellState extends State<MainNavShell> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events_outlined),
+            activeIcon: Icon(Icons.emoji_events, color: AppColors.primary),
+            label: 'Arena',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline),
+            activeIcon: Icon(Icons.add_circle, color: AppColors.primary),
+            label: 'Challenge',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.palette_outlined),
             activeIcon: Icon(Icons.palette, color: AppColors.primary),
-            label: 'Design System',
+            label: 'System UI',
           ),
         ],
       ),

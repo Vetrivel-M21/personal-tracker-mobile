@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/navigation/screens/main_nav_shell.dart';
+import 'features/onboarding/screens/location_setup_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,10 @@ class AuraApp extends ConsumerWidget {
           ),
         );
       case AuthStatus.authenticated:
+        final user = authState.user;
+        if (user != null && (user.district == null || user.district!.isEmpty)) {
+          return const LocationSetupScreen();
+        }
         return const MainNavShell();
       case AuthStatus.unauthenticated:
       case AuthStatus.error:
