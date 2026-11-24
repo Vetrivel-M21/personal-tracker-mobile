@@ -45,6 +45,13 @@ class AppTypography {
     letterSpacing: 0.3,
   );
 
+  static TextStyle titleMedium = GoogleFonts.rajdhani(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.3,
+  );
+
   // Body styles (Readable, scales with accessibility settings)
   static TextStyle bodyLarge = GoogleFonts.inter(
     fontSize: 16,
@@ -69,6 +76,26 @@ class AppTypography {
     fontSize: 15,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.0,
+  );
+
+  static TextStyle labelLarge = GoogleFonts.rajdhani(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.5,
+  );
+
+  static TextStyle labelMedium = GoogleFonts.rajdhani(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.5,
+    color: AppColors.textSecondary,
+  );
+
+  static TextStyle labelSmall = GoogleFonts.inter(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.4,
+    color: AppColors.textMuted,
   );
 
   static TextStyle badge = GoogleFonts.orbitron(

@@ -9,10 +9,13 @@ import '../../../widgets/level_badge.dart';
 import '../../../widgets/rank_badge.dart';
 import '../../../widgets/stat_card.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../calisthenics/screens/calisthenics_screen.dart';
 import '../../competition/providers/competition_provider.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
+import '../../habits/screens/habits_screen.dart';
 import '../../onboarding/screens/location_setup_screen.dart';
 import '../../sharing/screens/invite_stats_screen.dart';
+import '../../workouts/screens/workout_splits_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -221,6 +224,45 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
 
+              // Training & Habit Protocols Bento Grid
+              Text('TRAINING & DISCIPLINE PROTOCOLS', style: AppTypography.labelMedium),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildProtocolCard(
+                      context: context,
+                      title: 'Habit Tracker',
+                      subtitle: 'Streak & Shields',
+                      icon: Icons.local_fire_department,
+                      color: AppColors.orange,
+                      destination: const HabitsScreen(),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildProtocolCard(
+                      context: context,
+                      title: 'Skill Tree',
+                      subtitle: 'Calisthenics',
+                      icon: Icons.account_tree_outlined,
+                      color: AppColors.primary,
+                      destination: const CalisthenicsScreen(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _buildProtocolCard(
+                context: context,
+                title: 'Gym Workout Split & Logger',
+                subtitle: 'Push/Pull/Legs, Upper/Lower & Set Logging',
+                icon: Icons.fitness_center,
+                color: AppColors.secondary,
+                destination: const WorkoutSplitsScreen(),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
               // Invite Squad Banner
               InkWell(
                 borderRadius: AppSpacing.roundedLg,
@@ -277,6 +319,65 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProtocolCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required Widget destination,
+  }) {
+    return InkWell(
+      borderRadius: AppSpacing.roundedLg,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => destination),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.bgCardSolid,
+          borderRadius: AppSpacing.roundedLg,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: AppSpacing.roundedMd,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTypography.labelSmall.copyWith(color: AppColors.textMuted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+          ],
         ),
       ),
     );

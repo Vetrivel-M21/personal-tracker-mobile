@@ -4,6 +4,7 @@ import '../../competition/screens/leaderboard_screen.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
 import '../../home/screens/home_screen.dart';
 import '../../sharing/screens/invite_stats_screen.dart';
+import '../../training/screens/training_hub_screen.dart';
 
 class MainNavShell extends StatefulWidget {
   final int initialTab;
@@ -19,6 +20,7 @@ class _MainNavShellState extends State<MainNavShell> {
 
   final _screens = const [
     HomeScreen(),
+    TrainingHubScreen(),
     LeaderboardScreen(),
     SubmitAttemptScreen(),
     InviteStatsScreen(),
@@ -40,11 +42,20 @@ class _MainNavShellState extends State<MainNavShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.bgSidebar,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textMuted,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home, color: AppColors.primary),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.track_changes),
+            activeIcon: Icon(Icons.track_changes, color: AppColors.primary),
+            label: 'Training',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events_outlined),
