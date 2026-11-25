@@ -9,12 +9,83 @@ import '../widgets/habit_item_card.dart';
 import '../widgets/streak_shield_badge.dart';
 
 class HabitsScreen extends ConsumerWidget {
-  const HabitsScreen({super.key});
+  final bool isEmbedded;
+
+  const HabitsScreen({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(habitsNotifierProvider);
     final notifier = ref.read(habitsNotifierProvider.notifier);
+
+    final content = state.isLoading
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () => notifier.loadTodayData(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StreakShieldBadge(stats: state.streakStats),
+                  const SizedBox(height: AppSpacing.lg),
+                  DailyLoggerCard(
+                    progress: state.todayProgress,
+                    onSaveReflection: ({required hours, required mood, required notes}) =>
+                        notifier.saveDailyReflection(
+                      learningHours: hours,
+                      mood: mood,
+                      notes: notes,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('TODAY\'S HABITS', style: AppTypography.labelMedium),
+                      Row(
+                        children: [
+                          Text(
+                            '${state.todayProgress.completedHabitIds.length} / ${state.habits.length} Done',
+                            style: AppTypography.labelSmall.copyWith(color: AppColors.primary),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 22),
+                            tooltip: 'Add Habit',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => _showAddHabitDialog(context, notifier),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (state.habits.isEmpty)
+                    _buildEmptyHabits(context, notifier)
+                  else
+                    ...state.habits.map((habit) {
+                      final isCompleted =
+                          state.todayProgress.completedHabitIds.contains(habit.id);
+                      return HabitItemCard(
+                        habit: habit,
+                        isCompleted: isCompleted,
+                        onToggle: () => notifier.toggleHabit(habit.id),
+                        onArchive: () => notifier.archiveHabit(habit.id),
+                      );
+                    }),
+                  const SizedBox(height: 70), // Bottom padding for floating nav
+                ],
+              ),
+            ),
+          );
+
+    if (isEmbedded) {
+      return content;
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgMain,
@@ -27,53 +98,7 @@ class HabitsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : RefreshIndicator(
-              color: AppColors.primary,
-              onRefresh: () => notifier.loadTodayData(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StreakShieldBadge(stats: state.streakStats),
-                    const SizedBox(height: AppSpacing.lg),
-                    DailyLoggerCard(
-                      progress: state.todayProgress,
-                      onHoursChanged: (hrs) => notifier.updateLearningHours(hrs),
-                      onMoodChanged: (mood) => notifier.updateMood(mood),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('TODAY\'S HABITS', style: AppTypography.labelMedium),
-                        Text(
-                          '${state.todayProgress.completedHabitIds.length} / ${state.habits.length} Done',
-                          style: AppTypography.labelSmall.copyWith(color: AppColors.primary),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (state.habits.isEmpty)
-                      _buildEmptyHabits(context, notifier)
-                    else
-                      ...state.habits.map((habit) {
-                        final isCompleted =
-                            state.todayProgress.completedHabitIds.contains(habit.id);
-                        return HabitItemCard(
-                          habit: habit,
-                          isCompleted: isCompleted,
-                          onToggle: () => notifier.toggleHabit(habit.id),
-                          onArchive: () => notifier.archiveHabit(habit.id),
-                        );
-                      }),
-                  ],
-                ),
-              ),
-            ),
+      body: content,
     );
   }
 

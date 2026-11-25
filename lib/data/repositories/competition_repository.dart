@@ -86,7 +86,7 @@ class CompetitionRepository {
       'area': area,
     };
 
-    final response = await apiClient.dio.put(
+    final response = await apiClient.dio.patch(
       '/api/me',
       data: payload,
     );

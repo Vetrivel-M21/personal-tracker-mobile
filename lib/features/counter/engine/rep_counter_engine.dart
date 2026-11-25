@@ -16,13 +16,17 @@ class PoseKeypoint {
   });
 }
 
-/// The discrete stages of a push-up repetition
+/// The discrete stages of a repetition
 enum RepStage {
   waitingForPosition,
   up,
   descending,
   bottomReached,
   ascending,
+  hang,
+  pulling,
+  topReached,
+  lowering,
 }
 
 /// Real-time evaluation output from the counter engine
@@ -93,8 +97,14 @@ class RepCounterState {
   }
 }
 
+abstract class RepCounterEngine {
+  RepCounterState get state;
+  void reset();
+  RepCounterState processLandmarks(Map<int, PoseKeypoint> landmarks);
+}
+
 /// Pure Dart biomechanics engine that processes keypoints and detects push-ups
-class PushupCounterEngine {
+class PushupCounterEngine implements RepCounterEngine {
   RepCounterState _state = RepCounterState.initial();
   DateTime? _repStartTime;
   final void Function()? onRepCounted;
@@ -102,8 +112,10 @@ class PushupCounterEngine {
 
   PushupCounterEngine({this.onRepCounted, this.onHalfRepRejected});
 
+  @override
   RepCounterState get state => _state;
 
+  @override
   void reset() {
     _state = RepCounterState.initial();
     _repStartTime = null;
@@ -126,6 +138,7 @@ class PushupCounterEngine {
   /// 15: left wrist,    16: right wrist
   /// 23: left hip,      24: right hip
   /// 27: left ankle,    28: right ankle
+  @override
   RepCounterState processLandmarks(Map<int, PoseKeypoint> landmarks) {
     final leftShoulder = landmarks[11];
     final rightShoulder = landmarks[12];
@@ -276,6 +289,13 @@ class PushupCounterEngine {
           feedback = 'Lock out arms...';
         }
         break;
+
+      case RepStage.hang:
+      case RepStage.pulling:
+      case RepStage.topReached:
+      case RepStage.lowering:
+        nextStage = RepStage.waitingForPosition;
+        break;
     }
 
     _state = _state.copyWith(
@@ -286,6 +306,181 @@ class PushupCounterEngine {
       spineAngle: spineAngle,
       isInPosition: true,
       isFormValid: isSpineAligned,
+      formFeedback: feedback,
+      repDurations: durations,
+      justCountedRep: justCounted,
+    );
+
+    return _state;
+  }
+}
+
+/// Pure Dart biomechanics engine that processes keypoints and detects pull-ups
+class PullupCounterEngine implements RepCounterEngine {
+  RepCounterState _state = RepCounterState.initial().copyWith(formFeedback: 'Hang from pull-up bar');
+  DateTime? _repStartTime;
+  final void Function()? onRepCounted;
+  final void Function()? onHalfRepRejected;
+
+  PullupCounterEngine({this.onRepCounted, this.onHalfRepRejected});
+
+  @override
+  RepCounterState get state => _state;
+
+  @override
+  void reset() {
+    _state = RepCounterState.initial().copyWith(formFeedback: 'Hang from pull-up bar');
+    _repStartTime = null;
+  }
+
+  @override
+  @override
+  RepCounterState processLandmarks(Map<int, PoseKeypoint> landmarks) {
+    // 0: nose, 11: left shoulder, 12: right shoulder, 13: left elbow, 14: right elbow, 15: left wrist, 16: right wrist
+    final nose = landmarks[0];
+    final leftShoulder = landmarks[11];
+    final rightShoulder = landmarks[12];
+    final leftElbow = landmarks[13];
+    final rightElbow = landmarks[14];
+    final leftWrist = landmarks[15];
+    final rightWrist = landmarks[16];
+
+    final leftArmVisible = leftShoulder != null &&
+        leftElbow != null &&
+        leftWrist != null &&
+        leftShoulder.confidence >= RepCounterConfig.minLandmarkConfidence &&
+        leftElbow.confidence >= RepCounterConfig.minLandmarkConfidence &&
+        leftWrist.confidence >= RepCounterConfig.minLandmarkConfidence;
+
+    final rightArmVisible = rightShoulder != null &&
+        rightElbow != null &&
+        rightWrist != null &&
+        rightShoulder.confidence >= RepCounterConfig.minLandmarkConfidence &&
+        rightElbow.confidence >= RepCounterConfig.minLandmarkConfidence &&
+        rightWrist.confidence >= RepCounterConfig.minLandmarkConfidence;
+
+    if (!leftArmVisible && !rightArmVisible) {
+      _state = _state.copyWith(
+        isInPosition: false,
+        justCountedRep: false,
+        formFeedback: 'Hang in frame facing camera',
+      );
+      return _state;
+    }
+
+    final bool useLeft = leftArmVisible &&
+        (!rightArmVisible ||
+            ((leftShoulder.confidence + leftElbow.confidence + leftWrist.confidence) >=
+                (rightShoulder.confidence + rightElbow.confidence + rightWrist.confidence)));
+
+    final shoulder = useLeft ? leftShoulder : rightShoulder!;
+    final elbow = useLeft ? leftElbow : rightElbow!;
+    final wrist = useLeft ? leftWrist : rightWrist!;
+
+    final double elbowAngle = PushupCounterEngine.calculateAngle(shoulder, elbow, wrist);
+    final double wristY = wrist.y;
+    final double headY = (nose != null && nose.confidence >= 0.5) ? nose.y : shoulder.y;
+
+    // In camera coordinates, wrists must be positioned higher than shoulders for dead hang
+    final bool isHanging = wristY < shoulder.y;
+
+    return _transitionPullupFSM(
+      elbowAngle: elbowAngle,
+      headY: headY,
+      wristY: wristY,
+      isHanging: isHanging,
+    );
+  }
+
+  RepCounterState _transitionPullupFSM({
+    required double elbowAngle,
+    required double headY,
+    required double wristY,
+    required bool isHanging,
+  }) {
+    bool justCounted = false;
+    RepStage nextStage = _state.stage;
+    String feedback = _state.formFeedback;
+    int reps = _state.repCount;
+    int halfReps = _state.halfRepsRejected;
+    List<double> durations = List.from(_state.repDurations);
+
+    switch (_state.stage) {
+      case RepStage.waitingForPosition:
+      case RepStage.up:
+        if (elbowAngle >= RepCounterConfig.pullupHangElbowAngle && isHanging) {
+          nextStage = RepStage.hang;
+          feedback = 'Dead hang detected! Pull up!';
+        } else {
+          feedback = 'Full dead hang: arms straight';
+        }
+        break;
+
+      case RepStage.hang:
+        if (elbowAngle <= 135.0) {
+          nextStage = RepStage.pulling;
+          _repStartTime = DateTime.now();
+          feedback = 'Pulling up...';
+        } else {
+          feedback = 'Ready! Pull chin over bar';
+        }
+        break;
+
+      case RepStage.pulling:
+        // Chin over bar: elbow angle acute (<= 75 deg) or head near/above wrist level
+        if (elbowAngle <= RepCounterConfig.pullupTopElbowAngle || (headY <= wristY + 40 && elbowAngle <= 85.0)) {
+          nextStage = RepStage.topReached;
+          feedback = 'Chin above bar! Lower down';
+        } else if (elbowAngle >= RepCounterConfig.pullupHangElbowAngle - 10) {
+          // Half-rep: dropped back before chin passed bar
+          halfReps += 1;
+          nextStage = RepStage.hang;
+          feedback = 'Half rep! Chin must clear bar.';
+          onHalfRepRejected?.call();
+        } else {
+          feedback = 'Pull higher!';
+        }
+        break;
+
+      case RepStage.topReached:
+        if (elbowAngle > 90.0) {
+          nextStage = RepStage.lowering;
+          feedback = 'Lowering to dead hang...';
+        }
+        break;
+
+      case RepStage.lowering:
+      case RepStage.descending:
+      case RepStage.bottomReached:
+      case RepStage.ascending:
+        if (elbowAngle >= RepCounterConfig.pullupHangElbowAngle) {
+          // Valid pull-up rep completed
+          final durationMs = _repStartTime != null
+              ? DateTime.now().difference(_repStartTime!).inMilliseconds
+              : 1200;
+
+          if (durationMs >= RepCounterConfig.minRepDurationMs) {
+            reps += 1;
+            justCounted = true;
+            durations.add(durationMs / 1000.0);
+            feedback = 'Pull-up $reps counted!';
+            onRepCounted?.call();
+          }
+          nextStage = RepStage.hang;
+        } else {
+          feedback = 'Return to full dead hang...';
+        }
+        break;
+    }
+
+    _state = _state.copyWith(
+      repCount: reps,
+      halfRepsRejected: halfReps,
+      stage: nextStage,
+      elbowAngle: elbowAngle,
+      spineAngle: 180.0,
+      isInPosition: true,
+      isFormValid: isHanging,
       formFeedback: feedback,
       repDurations: durations,
       justCountedRep: justCounted,

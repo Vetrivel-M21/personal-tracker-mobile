@@ -8,7 +8,9 @@ import '../providers/calisthenics_provider.dart';
 import '../widgets/skill_node_card.dart';
 
 class CalisthenicsScreen extends ConsumerStatefulWidget {
-  const CalisthenicsScreen({super.key});
+  final bool isEmbedded;
+
+  const CalisthenicsScreen({super.key, this.isEmbedded = false});
 
   @override
   ConsumerState<CalisthenicsScreen> createState() => _CalisthenicsScreenState();
@@ -35,29 +37,56 @@ class _CalisthenicsScreenState extends ConsumerState<CalisthenicsScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(calisthenicsNotifierProvider);
 
+    final content = state.isLoading
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : state.errorMessage != null
+            ? _buildErrorView(state.errorMessage!)
+            : Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCardSolid,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.primary, width: 1.2),
+                      ),
+                      labelColor: AppColors.primary,
+                      unselectedLabelColor: AppColors.textSecondary,
+                      labelStyle: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      dividerColor: Colors.transparent,
+                      tabs: _branches.map((b) => Tab(text: b.toUpperCase())).toList(),
+                    ),
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: _branches.map((branch) {
+                        final skills = state.branches[branch] ?? [];
+                        return _buildBranchView(branch, skills, state.unlockingSkillId);
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              );
+
+    if (widget.isEmbedded) {
+      return content;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
         title: Text('Calisthenics Skill Tree', style: AppTypography.headingMedium),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          tabs: _branches.map((b) => Tab(text: b.toUpperCase())).toList(),
-        ),
       ),
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : state.errorMessage != null
-              ? _buildErrorView(state.errorMessage!)
-              : TabBarView(
-                  controller: _tabController,
-                  children: _branches.map((branch) {
-                    final skills = state.branches[branch] ?? [];
-                    return _buildBranchView(branch, skills, state.unlockingSkillId);
-                  }).toList(),
-                ),
+      body: content,
     );
   }
 
@@ -101,6 +130,7 @@ class _CalisthenicsScreenState extends ConsumerState<CalisthenicsScreen>
               onUnlock: () => _handleUnlock(skill),
             ),
           ),
+          const SizedBox(height: 70), // Bottom padding for floating navigation bar
         ],
       ),
     );

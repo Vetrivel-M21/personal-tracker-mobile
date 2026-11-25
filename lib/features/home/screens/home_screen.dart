@@ -10,11 +10,16 @@ import '../../../widgets/rank_badge.dart';
 import '../../../widgets/stat_card.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../calisthenics/screens/calisthenics_screen.dart';
+import '../../community/screens/community_screen.dart';
 import '../../competition/providers/competition_provider.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
+import '../../counter/screens/ai_counter_screen.dart';
 import '../../habits/screens/habits_screen.dart';
 import '../../onboarding/screens/location_setup_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../progress/widgets/daily_progress_card.dart';
 import '../../sharing/screens/invite_stats_screen.dart';
+import '../../tools/screens/focus_tools_screen.dart';
 import '../../workouts/screens/workout_splits_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -38,22 +43,41 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
-        title: Row(
-          children: [
-            LevelBadge(level: level),
-            const SizedBox(width: AppSpacing.sm),
-            Flexible(
-              child: Text(
-                displayName,
-                style: AppTypography.headingMedium,
-                overflow: TextOverflow.ellipsis,
+        title: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
+          },
+          child: Row(
+            children: [
+              LevelBadge(level: level),
+              const SizedBox(width: AppSpacing.sm),
+              Flexible(
+                child: Text(
+                  displayName,
+                  style: AppTypography.headingMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textMuted),
+            ],
+          ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: AppColors.primary),
+            tooltip: 'Hunter Profile',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
+          ),
           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.lg),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: Center(child: RankBadge.fromXP(xp)),
           ),
         ],
@@ -74,6 +98,10 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 child: ExpBar(xpIntoLevel: xpInto, xpForNextLevel: xpNext),
               ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Phase 7B: Daily Progress Hub
+              const DailyProgressCard(),
               const SizedBox(height: AppSpacing.lg),
 
               // Location Rank Banner (Tap to change territory)
@@ -260,6 +288,41 @@ class HomeScreen extends ConsumerWidget {
                 icon: Icons.fitness_center,
                 color: AppColors.secondary,
                 destination: const WorkoutSplitsScreen(),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildProtocolCard(
+                      context: context,
+                      title: 'Focus & Quests',
+                      subtitle: 'Pomodoro & Todos',
+                      icon: Icons.timer_outlined,
+                      color: AppColors.accentGold,
+                      destination: const FocusToolsScreen(),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildProtocolCard(
+                      context: context,
+                      title: 'AI Rep Camera',
+                      subtitle: 'Push-up & Pull-up',
+                      icon: Icons.camera_alt_outlined,
+                      color: AppColors.primary,
+                      destination: const AiCounterScreen(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _buildProtocolCard(
+                context: context,
+                title: 'Community Hunters Directory',
+                subtitle: 'Explore local hunters, give kudos & view public habits',
+                icon: Icons.group_outlined,
+                color: AppColors.primary,
+                destination: const CommunityScreen(),
               ),
               const SizedBox(height: AppSpacing.lg),
 

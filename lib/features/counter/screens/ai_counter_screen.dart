@@ -25,8 +25,9 @@ class AiCounterScreen extends ConsumerStatefulWidget {
 class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
   CameraController? _cameraController;
   PoseDetectorService? _poseService;
-  late final PushupCounterEngine _engine;
+  late RepCounterEngine _engine;
   RepCounterState _counterState = RepCounterState.initial();
+  String _selectedExercise = 'pushup'; // 'pushup' or 'pullup'
 
   Map<int, PoseKeypoint> _latestLandmarks = {};
   Size _imageSize = const Size(480, 640);
@@ -43,14 +44,7 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
   @override
   void initState() {
     super.initState();
-    _engine = PushupCounterEngine(
-      onRepCounted: () {
-        HapticFeedback.heavyImpact();
-      },
-      onHalfRepRejected: () {
-        HapticFeedback.vibrate();
-      },
-    );
+    _engine = _createEngine();
 
     _sessionStopwatch.start();
     _uiRefreshTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
@@ -62,6 +56,29 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
     } else {
       _initCamera();
     }
+  }
+
+  RepCounterEngine _createEngine() {
+    if (_selectedExercise == 'pullup') {
+      return PullupCounterEngine(
+        onRepCounted: () => HapticFeedback.heavyImpact(),
+        onHalfRepRejected: () => HapticFeedback.vibrate(),
+      );
+    }
+    return PushupCounterEngine(
+      onRepCounted: () => HapticFeedback.heavyImpact(),
+      onHalfRepRejected: () => HapticFeedback.vibrate(),
+    );
+  }
+
+  void _switchExercise(String ex) {
+    if (_selectedExercise == ex) return;
+    setState(() {
+      _selectedExercise = ex;
+      _engine = _createEngine();
+      _counterState = _engine.state;
+      _simulatedElbowAngle = ex == 'pullup' ? 165.0 : 175.0;
+    });
   }
 
   @override
@@ -159,7 +176,7 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
     if (totalReps > 0) {
       final notifier = ref.read(attemptsNotifierProvider.notifier);
       await notifier.submitAttempt(
-        exercise: 'pushup',
+        exercise: _selectedExercise,
         reps: totalReps,
         proofType: 'ai_count',
       );
@@ -185,7 +202,7 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('AI VERIFIED PUSH-UPS', style: AppTypography.headingSmall),
+            Text('AI VERIFIED ${_selectedExercise.toUpperCase()}S', style: AppTypography.headingSmall),
             const SizedBox(height: AppSpacing.md),
             _buildSummaryRow('Valid Reps', '$reps', AppColors.primary),
             _buildSummaryRow('Half-Reps Rejected', '${_counterState.halfRepsRejected}', AppColors.danger),
@@ -248,8 +265,25 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
-        title: Text('AI PUSH-UP COUNTER', style: AppTypography.headingMedium),
+        title: Text('AI REP COUNTER', style: AppTypography.headingMedium),
         actions: [
+          // Exercise Selector (Push-up / Pull-up)
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.bgCardSolid,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildExerciseChip('PUSH-UP', 'pushup'),
+                _buildExerciseChip('PULL-UP', 'pullup'),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           IconButton(
             icon: Icon(
               _isSimulatorMode ? Icons.camera_alt_outlined : Icons.tune,
@@ -451,6 +485,27 @@ class _AiCounterScreenState extends ConsumerState<AiCounterScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExerciseChip(String label, String exercise) {
+    final isSelected = _selectedExercise == exercise;
+    return GestureDetector(
+      onTap: () => _switchExercise(exercise),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            color: isSelected ? AppColors.bgMain : AppColors.textSecondary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

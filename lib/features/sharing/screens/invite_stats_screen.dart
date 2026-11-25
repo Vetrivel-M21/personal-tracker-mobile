@@ -7,6 +7,7 @@ import '../../../data/services/analytics_service.dart';
 import '../../../widgets/app_buttons.dart';
 import '../../../widgets/stat_card.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../community/screens/community_screen.dart';
 import '../providers/referral_provider.dart';
 import '../services/invite_link_service.dart';
 import '../services/share_card_service.dart';
@@ -233,7 +234,16 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            icon: const Icon(Icons.people_alt_outlined, color: AppColors.primary),
+            tooltip: 'Hunters Directory',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CommunityScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
             onPressed: () => ref.read(referralStatsProvider.notifier).refresh(),
           ),
         ],

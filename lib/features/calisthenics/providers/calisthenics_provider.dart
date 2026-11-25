@@ -62,20 +62,7 @@ class CalisthenicsNotifier extends StateNotifier<CalisthenicsState> {
   Future<bool> unlockSkill(String skillId) async {
     state = state.copyWith(unlockingSkillId: skillId, errorMessage: null);
     try {
-      final updatedSkill = await _service.unlockSkill(skillId);
-      final updatedBranches = Map<String, List<CalisthenicsSkill>>.from(state.branches);
-      final branchList = updatedBranches[updatedSkill.branch];
-      if (branchList != null) {
-        final index = branchList.indexWhere((s) => s.id == skillId);
-        if (index != -1) {
-          final updatedList = List<CalisthenicsSkill>.from(branchList);
-          updatedList[index] = updatedSkill;
-          if (index + 1 < updatedList.length) {
-            updatedList[index + 1] = updatedList[index + 1].copyWith(available: true);
-          }
-          updatedBranches[updatedSkill.branch] = updatedList;
-        }
-      }
+      final updatedBranches = await _service.unlockSkill(skillId);
       state = state.copyWith(branches: updatedBranches, unlockingSkillId: null);
       return true;
     } catch (e) {

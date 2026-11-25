@@ -28,11 +28,21 @@ class CalisthenicsService {
     }
   }
 
-  Future<CalisthenicsSkill> unlockSkill(String skillId) async {
+  Future<Map<String, List<CalisthenicsSkill>>> unlockSkill(String skillId) async {
     try {
       final response = await apiClient.dio.post('/api/calisthenics/skills/$skillId/unlock');
       final data = response.data as Map<String, dynamic>;
-      return CalisthenicsSkill.fromJson(data);
+      final branchesMap = data['branches'] as Map<String, dynamic>? ?? {};
+
+      final Map<String, List<CalisthenicsSkill>> result = {};
+      branchesMap.forEach((branchName, list) {
+        if (list is List) {
+          result[branchName] = list
+              .map((item) => CalisthenicsSkill.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      });
+      return result;
     } on DioException catch (e) {
       final message = e.response?.data?['error'] ?? 'Failed to unlock skill';
       throw Exception(message);

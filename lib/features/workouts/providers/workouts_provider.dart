@@ -5,6 +5,30 @@ import '../models/workout_split.dart';
 import '../models/workout_template.dart';
 import '../services/workouts_service.dart';
 
+class CustomExerciseDraft {
+  final String name;
+  final int targetSets;
+  final String targetReps;
+  final String notes;
+
+  CustomExerciseDraft({
+    required this.name,
+    this.targetSets = 3,
+    this.targetReps = '10',
+    this.notes = '',
+  });
+}
+
+class CustomDayDraft {
+  final String name;
+  final List<CustomExerciseDraft> exercises;
+
+  CustomDayDraft({
+    required this.name,
+    required this.exercises,
+  });
+}
+
 final workoutsServiceProvider = Provider<WorkoutsService>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   return WorkoutsService(apiClient: apiClient);
@@ -104,6 +128,48 @@ class WorkoutsNotifier extends StateNotifier<WorkoutsState> {
     try {
       final newSplit = await _service.createSplitFromTemplate(name, templateId);
       await _service.activateSplit(newSplit.id);
+      await loadWorkoutsData();
+      return true;
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> createFullCustomRoutine({
+    required String name,
+    required List<CustomDayDraft> days,
+    bool activate = true,
+  }) async {
+    try {
+      final split = await _service.createCustomSplit(name);
+      for (final day in days) {
+        final createdDay = await _service.addSplitDay(split.id, day.name);
+        for (final ex in day.exercises) {
+          await _service.addSplitExercise(
+            splitId: split.id,
+            dayId: createdDay.id,
+            name: ex.name,
+            targetSets: ex.targetSets,
+            targetReps: ex.targetReps,
+            notes: ex.notes,
+          );
+        }
+      }
+      if (activate) {
+        await _service.activateSplit(split.id);
+      }
+      await loadWorkoutsData();
+      return true;
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> deleteSplit(String splitId) async {
+    try {
+      await _service.deleteSplit(splitId);
       await loadWorkoutsData();
       return true;
     } catch (e) {

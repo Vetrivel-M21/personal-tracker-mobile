@@ -61,6 +61,66 @@ class WorkoutsService {
     }
   }
 
+  Future<WorkoutSplitDetail> createCustomSplit(String name) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/api/workouts/splits',
+        data: {'name': name},
+      );
+      return WorkoutSplitDetail.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to create custom split';
+      throw Exception(message);
+    }
+  }
+
+  Future<WorkoutSplitDay> addSplitDay(String splitId, String name) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/api/workouts/splits/$splitId/days',
+        data: {'name': name},
+      );
+      return WorkoutSplitDay.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to add split day';
+      throw Exception(message);
+    }
+  }
+
+  Future<WorkoutSplitExercise> addSplitExercise({
+    required String splitId,
+    required String dayId,
+    required String name,
+    required int targetSets,
+    required String targetReps,
+    String notes = '',
+  }) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/api/workouts/splits/$splitId/days/$dayId/exercises',
+        data: {
+          'name': name,
+          'targetSets': targetSets,
+          'targetReps': targetReps,
+          'notes': notes,
+        },
+      );
+      return WorkoutSplitExercise.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to add exercise';
+      throw Exception(message);
+    }
+  }
+
+  Future<void> deleteSplit(String splitId) async {
+    try {
+      await apiClient.dio.delete('/api/workouts/splits/$splitId');
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to delete split';
+      throw Exception(message);
+    }
+  }
+
   Future<void> activateSplit(String splitId) async {
     try {
       await apiClient.dio.post('/api/workouts/splits/$splitId/activate');

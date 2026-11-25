@@ -109,6 +109,21 @@ class HabitsNotifier extends StateNotifier<HabitsState> {
     await _saveProgress(updated);
   }
 
+  Future<bool> saveDailyReflection({
+    required double learningHours,
+    required String mood,
+    required String notes,
+  }) async {
+    final updated = state.todayProgress.copyWith(
+      learningHours: learningHours,
+      mood: mood,
+      notes: notes,
+    );
+    state = state.copyWith(todayProgress: updated);
+    await _saveProgress(updated);
+    return state.errorMessage == null;
+  }
+
   Future<void> updateLearningHours(double hours) async {
     final updated = state.todayProgress.copyWith(learningHours: hours);
     state = state.copyWith(todayProgress: updated);
