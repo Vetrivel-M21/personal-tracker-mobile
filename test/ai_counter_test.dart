@@ -171,7 +171,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
 
       expect(tester.takeException(), isNull);
-      expect(find.text('AI PUSH-UP COUNTER'), findsOneWidget);
+      expect(find.text('AI REP COUNTER'), findsOneWidget);
       expect(find.text('REPS'), findsOneWidget);
       expect(find.text('FINISH WORKOUT'), findsOneWidget);
       expect(find.text('DEPTH ANGLE'), findsOneWidget);

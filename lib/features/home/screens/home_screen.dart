@@ -19,6 +19,7 @@ import '../../onboarding/screens/location_setup_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../progress/widgets/daily_progress_card.dart';
 import '../../sharing/screens/invite_stats_screen.dart';
+import '../../system/widgets/hunter_quest_card.dart';
 import '../../tools/screens/focus_tools_screen.dart';
 import '../../workouts/screens/workout_splits_screen.dart';
 
@@ -102,6 +103,10 @@ class HomeScreen extends ConsumerWidget {
 
               // Phase 7B: Daily Progress Hub
               const DailyProgressCard(),
+              const SizedBox(height: AppSpacing.md),
+
+              // Hunter System: Daily Quest
+              const HunterQuestCard(),
               const SizedBox(height: AppSpacing.lg),
 
               // Location Rank Banner (Tap to change territory)

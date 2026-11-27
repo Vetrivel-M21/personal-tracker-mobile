@@ -5,7 +5,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
 import '../providers/auth_provider.dart';
+import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
+import 'verify_email_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,12 +33,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
+    final username = _usernameController.text.trim();
     final success = await ref.read(authNotifierProvider.notifier).login(
-          _usernameController.text.trim(),
+          username,
           _passwordController.text,
         );
 
     if (!success && mounted) {
+      final notifier = ref.read(authNotifierProvider.notifier);
+      if (notifier.lastErrorCode == 'EMAIL_NOT_VERIFIED') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please verify your email before logging in.'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyEmailScreen(username: username),
+          ),
+        );
+        return;
+      }
+
       final err = ref.read(authNotifierProvider).errorMessage ?? 'Login failed';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -139,7 +159,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                     onFieldSubmitted: (_) => _handleLogin(),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.xs),
+
+                  // Forgot password link
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ForgotPasswordScreen(
+                              initialUsername: _usernameController.text.trim(),
+                            ),
+                          ),
+                        );
+                      },
+                      //fix this issue
+                      child: Text(
+                        'Forgot Password?',
+                        style: AppTypography.titleMedium.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // Sign In Button
                   PrimaryButton(
@@ -191,4 +234,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
-

@@ -160,12 +160,46 @@ class WorkoutsService {
   Future<List<WorkoutSession>> listSessions() async {
     try {
       final response = await apiClient.dio.get('/api/workouts/sessions');
-      final list = response.data as List<dynamic>;
+      List<dynamic> list;
+      if (response.data is Map<String, dynamic>) {
+        final map = response.data as Map<String, dynamic>;
+        list = map['entries'] as List<dynamic>? ?? [];
+      } else if (response.data is List<dynamic>) {
+        list = response.data as List<dynamic>;
+      } else {
+        list = [];
+      }
       return list
           .map((item) => WorkoutSession.fromJson(item as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       final message = e.response?.data?['error'] ?? 'Failed to load workout sessions';
+      throw Exception(message);
+    }
+  }
+
+  Future<Map<String, dynamic>> getExerciseHistory(String name) async {
+    try {
+      final encoded = Uri.encodeComponent(name);
+      final response = await apiClient.dio.get('/api/workouts/exercise-history/$encoded');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to load exercise history';
+      throw Exception(message);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> listExercises({String? q, String? category, String? muscleGroup}) async {
+    try {
+      final response = await apiClient.dio.get('/api/exercises', queryParameters: {
+        if (q != null && q.isNotEmpty) 'q': q,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (muscleGroup != null && muscleGroup.isNotEmpty) 'muscle_group': muscleGroup,
+      });
+      final list = response.data as List<dynamic>? ?? [];
+      return list.cast<Map<String, dynamic>>();
+    } on DioException catch (e) {
+      final message = e.response?.data?['error'] ?? 'Failed to list exercises';
       throw Exception(message);
     }
   }

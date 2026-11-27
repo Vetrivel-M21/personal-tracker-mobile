@@ -53,5 +53,7 @@ app.*.map.json
 *.jks
 *.p12
 *.key
+key.properties
+**/key.properties
 google-services.json
 GoogleService-Info.plist

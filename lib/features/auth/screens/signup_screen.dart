@@ -5,6 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
 import '../providers/auth_provider.dart';
+import 'verify_email_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -38,24 +39,55 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
-    final success = await ref.read(authNotifierProvider.notifier).signup(
-          username: _usernameController.text.trim(),
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+
+    final result = await ref.read(authNotifierProvider.notifier).signup(
+          username: username,
           password: _passwordController.text,
           displayName: _displayNameController.text.trim(),
-          email: _emailController.text.trim(),
+          email: email,
           dateOfBirth: _dobController.text.trim(),
           referralCode: _referralController.text.trim().isEmpty ? null : _referralController.text.trim(),
         );
 
     if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created! Please verify your email code to enter.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.pop(context);
+      if (result != null) {
+        final pendingVerification = result['pending_verification'] as bool? ?? true;
+        final emailHint = result['email_hint'] as String?;
+
+        if (pendingVerification) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created! Please verify your email code to enter.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VerifyEmailScreen(
+                username: username,
+                emailHint: emailHint,
+              ),
+            ),
+          );
+        } else {
+          // Dev auto-verified: log in automatically
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created and verified! Logging in...'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          await ref.read(authNotifierProvider.notifier).login(
+            username,
+            _passwordController.text,
+          );
+          if (mounted) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
+        }
       } else {
         final err = ref.read(authNotifierProvider).errorMessage ?? 'Signup failed';
         ScaffoldMessenger.of(context).showSnackBar(
@@ -141,4 +173,3 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 }
-

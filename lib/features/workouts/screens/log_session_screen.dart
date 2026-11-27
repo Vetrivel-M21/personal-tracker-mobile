@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -22,24 +24,35 @@ class LogSessionScreen extends ConsumerStatefulWidget {
 }
 
 class _SetEntry {
+  final String? exerciseId;
   final String exerciseName;
   final int setNumber;
   final TextEditingController repsController;
   final TextEditingController weightController;
+  final TextEditingController durationController;
+  final bool isTimed;
+  double rpe;
+  String setType;
   bool isCompleted;
 
   _SetEntry({
+    this.exerciseId,
     required this.exerciseName,
     required this.setNumber,
     required String defaultReps,
     required String defaultWeight,
+    this.isTimed = false,
+    this.rpe = 8.0,
+    this.setType = 'normal',
   })  : repsController = TextEditingController(text: defaultReps),
         weightController = TextEditingController(text: defaultWeight),
+        durationController = TextEditingController(text: isTimed ? '30' : ''),
         isCompleted = false;
 
   void dispose() {
     repsController.dispose();
     weightController.dispose();
+    durationController.dispose();
   }
 }
 
@@ -47,6 +60,11 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
   final Map<String, List<_SetEntry>> _exerciseSets = {};
   final TextEditingController _notesController = TextEditingController();
   bool _isSaving = false;
+
+  Timer? _restTimer;
+  int _restSecondsRemaining = 0;
+  int _totalRestSeconds = 60;
+  bool _showRestBanner = false;
 
   @override
   void initState() {
@@ -57,13 +75,18 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
   void _initExerciseSets() {
     for (final ex in widget.day.exercises) {
       final sets = <_SetEntry>[];
+      final isTimed = ex.targetReps.toLowerCase().contains('s') || ex.name.toLowerCase().contains('plank') || ex.name.toLowerCase().contains('hold');
       for (int i = 1; i <= ex.targetSets; i++) {
         final parsedReps = _extractReps(ex.targetReps);
         sets.add(_SetEntry(
+          exerciseId: ex.exerciseId,
           exerciseName: ex.name,
           setNumber: i,
           defaultReps: parsedReps.toString(),
-          defaultWeight: '0',
+          defaultWeight: '', // Nullable, never default to 0
+          isTimed: isTimed,
+          rpe: 8.0,
+          setType: 'normal',
         ));
       }
       _exerciseSets[ex.name] = sets;
@@ -78,8 +101,48 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
     return 10;
   }
 
+  void _triggerRestTimer(String exerciseName) {
+    HapticFeedback.mediumImpact();
+    _restTimer?.cancel();
+    final lower = exerciseName.toLowerCase();
+    final isCompound = lower.contains('bench') ||
+        lower.contains('squat') ||
+        lower.contains('deadlift') ||
+        lower.contains('overhead') ||
+        lower.contains('press');
+    _totalRestSeconds = isCompound ? 90 : 60;
+    _restSecondsRemaining = _totalRestSeconds;
+    _showRestBanner = true;
+
+    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        if (_restSecondsRemaining > 1) {
+          _restSecondsRemaining--;
+        } else {
+          _restSecondsRemaining = 0;
+          _showRestBanner = false;
+          HapticFeedback.heavyImpact();
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  void _skipRestTimer() {
+    _restTimer?.cancel();
+    setState(() {
+      _restSecondsRemaining = 0;
+      _showRestBanner = false;
+    });
+  }
+
   @override
   void dispose() {
+    _restTimer?.cancel();
     for (final sets in _exerciseSets.values) {
       for (final s in sets) {
         s.dispose();
@@ -96,18 +159,104 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
       appBar: AppBar(
         title: Text(widget.day.name, style: AppTypography.headingMedium),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              top: _showRestBanner ? 70 : AppSpacing.lg,
+              bottom: AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSessionMetaCard(),
+                const SizedBox(height: AppSpacing.lg),
+                ...widget.day.exercises.map((ex) => _buildExerciseSetTable(ex)),
+                const SizedBox(height: AppSpacing.lg),
+                _buildNotesInput(),
+                const SizedBox(height: AppSpacing.xl),
+                _buildFinishButton(),
+              ],
+            ),
+          ),
+          if (_showRestBanner) _buildRestCountdownBanner(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRestCountdownBanner() {
+    final progress = _totalRestSeconds > 0
+        ? _restSecondsRemaining / _totalRestSeconds
+        : 0.0;
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.bgCardSolid,
+          border: const Border(bottom: BorderSide(color: AppColors.primary, width: 2)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
           children: [
-            _buildSessionMetaCard(),
-            const SizedBox(height: AppSpacing.lg),
-            ...widget.day.exercises.map((ex) => _buildExerciseSetTable(ex)),
-            const SizedBox(height: AppSpacing.lg),
-            _buildNotesInput(),
-            const SizedBox(height: AppSpacing.xl),
-            _buildFinishButton(),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 3,
+                    color: AppColors.primary,
+                    backgroundColor: AppColors.border,
+                  ),
+                  Center(
+                    child: Text(
+                      '$_restSecondsRemaining',
+                      style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'REST TIMER ACTIVE',
+                    style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Catch your breath for the next set',
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: _skipRestTimer,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textMuted,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              child: const Text('SKIP'),
+            ),
           ],
         ),
       ),
@@ -153,6 +302,7 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
 
   Widget _buildExerciseSetTable(WorkoutSplitExercise ex) {
     final sets = _exerciseSets[ex.name] ?? [];
+    final isTimed = sets.isNotEmpty && sets.first.isTimed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -165,13 +315,28 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(ex.name, style: AppTypography.titleMedium),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(ex.name, style: AppTypography.titleMedium),
+              if (isTimed)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.2),
+                    borderRadius: AppSpacing.roundedSm,
+                  ),
+                  child: Text('TIMED', style: AppTypography.labelSmall.copyWith(color: AppColors.secondary)),
+                ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(flex: 1, child: Text('SET', style: AppTypography.labelSmall)),
-              Expanded(flex: 2, child: Text('KG', style: AppTypography.labelSmall)),
-              Expanded(flex: 2, child: Text('REPS', style: AppTypography.labelSmall)),
+              Expanded(flex: 2, child: Text(isTimed ? 'SEC' : 'KG', style: AppTypography.labelSmall)),
+              Expanded(flex: 2, child: Text(isTimed ? 'KG' : 'REPS', style: AppTypography.labelSmall)),
+              Expanded(flex: 2, child: Text('TYPE', style: AppTypography.labelSmall)),
               const SizedBox(width: 44, child: Center(child: Icon(Icons.check, size: 16, color: AppColors.textMuted))),
             ],
           ),
@@ -198,18 +363,23 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
             flex: 2,
             child: Container(
               height: 36,
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
                 color: AppColors.bgMain,
                 borderRadius: AppSpacing.roundedSm,
                 border: Border.all(color: AppColors.border),
               ),
               child: TextField(
-                controller: s.weightController,
+                controller: s.isTimed ? s.durationController : s.weightController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 style: AppTypography.bodySmall,
-                decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                decoration: InputDecoration(
+                  hintText: s.isTimed ? '30s' : 'BW',
+                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
               ),
             ),
           ),
@@ -217,27 +387,71 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
             flex: 2,
             child: Container(
               height: 36,
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
                 color: AppColors.bgMain,
                 borderRadius: AppSpacing.roundedSm,
                 border: Border.all(color: AppColors.border),
               ),
               child: TextField(
-                controller: s.repsController,
+                controller: s.isTimed ? s.weightController : s.repsController,
                 keyboardType: TextInputType.number,
                 style: AppTypography.bodySmall,
-                decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                decoration: InputDecoration(
+                  hintText: s.isTimed ? 'kg' : 'reps',
+                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
               ),
             ),
           ),
+          // Set Type Selector Dropdown / Pill
+          Expanded(
+            flex: 2,
+            child: PopupMenuButton<String>(
+              initialValue: s.setType,
+              onSelected: (val) => setState(() => s.setType = val),
+              child: Container(
+                height: 36,
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.bgMain,
+                  borderRadius: AppSpacing.roundedSm,
+                  border: Border.all(color: AppColors.border),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  s.setType.toUpperCase(),
+                  style: AppTypography.labelSmall.copyWith(
+                    fontSize: 9,
+                    color: s.setType == 'normal' ? AppColors.textSecondary : AppColors.primary,
+                  ),
+                ),
+              ),
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'normal', child: Text('Normal')),
+                const PopupMenuItem(value: 'warmup', child: Text('Warmup')),
+                const PopupMenuItem(value: 'drop', child: Text('Drop Set')),
+                const PopupMenuItem(value: 'failure', child: Text('To Failure')),
+              ],
+            ),
+          ),
+          // Completion Checkbox
           SizedBox(
             width: 44,
             height: 36,
             child: InkWell(
               borderRadius: AppSpacing.roundedSm,
-              onTap: () => setState(() => s.isCompleted = !s.isCompleted),
+              onTap: () {
+                final willComplete = !s.isCompleted;
+                setState(() => s.isCompleted = willComplete);
+                if (willComplete) {
+                  _triggerRestTimer(s.exerciseName);
+                }
+              },
               child: Container(
                 decoration: BoxDecoration(
                   color: s.isCompleted ? AppColors.primary : AppColors.bgMain,
@@ -315,25 +529,43 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
   }
 
   Future<void> _saveSession() async {
-    setState(() => _isSaving = true);
-    final today = DateTime.now();
-    final dateStr =
-        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-
     final setsList = <WorkoutSessionSet>[];
     for (final sets in _exerciseSets.values) {
       for (final s in sets) {
+        if (!s.isCompleted) continue; // Only completed sets are sent!
         final reps = int.tryParse(s.repsController.text.trim()) ?? 0;
-        final weight = double.tryParse(s.weightController.text.trim());
+        final weightText = s.weightController.text.trim();
+        final weight = weightText.isEmpty ? null : double.tryParse(weightText);
+        final durText = s.durationController.text.trim();
+        final duration = durText.isEmpty ? null : int.tryParse(durText);
         setsList.add(WorkoutSessionSet(
           id: '',
+          exerciseId: s.exerciseId,
           exerciseName: s.exerciseName,
           setNumber: s.setNumber,
           reps: reps,
           weightKg: weight,
+          durationSeconds: duration,
+          rpe: s.rpe,
+          setType: s.setType,
         ));
       }
     }
+
+    if (setsList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please mark at least one completed set before saving.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    final today = DateTime.now();
+    final dateStr =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
     final notifier = ref.read(workoutsNotifierProvider.notifier);
     final session = await notifier.logSession(
