@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
@@ -31,6 +34,7 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
   }
 
   void _updateReps(int delta) {
+    HapticFeedback.lightImpact();
     setState(() {
       _reps = (_reps + delta).clamp(1, 1000);
       _repsController.text = _reps.toString();
@@ -59,12 +63,12 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
           _feedbackMessage = 'Attempt submitted! Status is PENDING admin verification.';
           if (_proofType == 'video') _videoUrlController.clear();
         });
-        // Also refresh leaderboard in background
         ref.read(leaderboardNotifierProvider.notifier).fetchLeaderboard();
       } else {
         setState(() {
           _isSuccessFeedback = false;
-          _feedbackMessage = ref.read(attemptsNotifierProvider).errorMessage ?? 'Submission failed';
+          _feedbackMessage =
+              ref.read(attemptsNotifierProvider).errorMessage ?? 'Submission failed';
         });
       }
     }
@@ -85,31 +89,45 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // AI Camera Counter Promo Banner
+              // AI Camera Counter Card (surface1 + hairline, no gradient)
               Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                margin: const EdgeInsets.only(bottom: AppSpacing.xl),
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.15),
-                      AppColors.secondary.withValues(alpha: 0.15),
-                    ],
-                  ),
+                  color: AppColors.surface1,
                   borderRadius: AppSpacing.roundedLg,
-                  border: Border.all(color: AppColors.primary),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.camera_alt, color: AppColors.primary, size: 28),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface2,
+                        borderRadius: AppSpacing.roundedSm,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(
+                        AppIcons.camera,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('AI CAMERA COUNTER', style: AppTypography.headingSmall),
                           Text(
-                            'Automatic on-device push-up counting with joint pose detection.',
+                            'AI Camera Counter',
+                            style: AppTypography.headingSmall.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Automatic on-device push-up counting with pose detection.',
                             style: AppTypography.bodySmall,
                           ),
                         ],
@@ -117,21 +135,30 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     SizedBox(
-                      width: 90,
-                      height: 38,
+                      height: AppSpacing.minTouchTarget,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(76, AppSpacing.minTouchTarget),
                           backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.bgMain,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedSm),
+                          foregroundColor: AppColors.onPrimary,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppSpacing.roundedMd,
+                          ),
                         ),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const AiCounterScreen()),
                           );
                         },
-                        child: Text('TRY AI', style: AppTypography.button.copyWith(fontSize: 12)),
+                        child: Text(
+                          'Try AI',
+                          style: AppTypography.button.copyWith(
+                            color: AppColors.onPrimary,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -139,25 +166,31 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
               ),
 
               // Exercise Selection
-              Text('EXERCISE', style: AppTypography.headingSmall),
-              const SizedBox(height: AppSpacing.xs),
+              Text('EXERCISE', style: AppTypography.labelSmall),
+              const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
                   Expanded(
                     child: _buildChoiceCard(
                       label: 'Push-Ups',
-                      icon: Icons.fitness_center,
+                      icon: AppIcons.training,
                       isSelected: _exercise == 'pushup',
-                      onTap: () => setState(() => _exercise = 'pushup'),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _exercise = 'pushup');
+                      },
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _buildChoiceCard(
                       label: 'Pull-Ups',
-                      icon: Icons.sports_gymnastics,
+                      icon: AppIcons.activity,
                       isSelected: _exercise == 'pullup',
-                      onTap: () => setState(() => _exercise = 'pullup'),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _exercise = 'pullup');
+                      },
                     ),
                   ),
                 ],
@@ -165,18 +198,20 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
               const SizedBox(height: AppSpacing.xl),
 
               // Rep Counter Section
-              Text('CONSECUTIVE REPS', style: AppTypography.headingSmall),
+              Text('CONSECUTIVE REPS', style: AppTypography.labelSmall),
               const SizedBox(height: AppSpacing.sm),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xl,
+                  horizontal: AppSpacing.md,
+                ),
                 decoration: BoxDecoration(
-                  color: AppColors.bgCardSolid,
+                  color: AppColors.surface1,
                   borderRadius: AppSpacing.roundedLg,
-                  border: Border.all(color: AppColors.borderHover),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Column(
                   children: [
-                    // Giant Display
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -185,20 +220,23 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                         Text(
                           '$_reps',
                           style: AppTypography.displayLarge.copyWith(
-                            fontSize: 54,
+                            fontSize: 52,
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text('reps', style: AppTypography.headingMedium.copyWith(color: AppColors.textMuted)),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          'reps',
+                          style: AppTypography.headingMedium.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Quick Stepper Buttons
+                    const SizedBox(height: AppSpacing.lg),
                     Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
                       alignment: WrapAlignment.center,
                       children: [
                         _buildStepButton('-10', () => _updateReps(-10)),
@@ -214,25 +252,31 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
               const SizedBox(height: AppSpacing.xl),
 
               // Proof Type Picker
-              Text('PROOF METHOD', style: AppTypography.headingSmall),
-              const SizedBox(height: AppSpacing.xs),
+              Text('PROOF METHOD', style: AppTypography.labelSmall),
+              const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
                   Expanded(
                     child: _buildChoiceCard(
                       label: 'Honor / Manual',
-                      icon: Icons.edit_note,
+                      icon: AppIcons.edit,
                       isSelected: _proofType == 'manual',
-                      onTap: () => setState(() => _proofType = 'manual'),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _proofType = 'manual');
+                      },
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _buildChoiceCard(
                       label: 'Video Link',
-                      icon: Icons.videocam_outlined,
+                      icon: AppIcons.camera,
                       isSelected: _proofType == 'video',
-                      onTap: () => setState(() => _proofType = 'video'),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _proofType = 'video');
+                      },
                     ),
                   ),
                 ],
@@ -246,7 +290,7 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Video Proof URL',
                     hintText: 'https://youtube.com/shorts/... or Drive link',
-                    prefixIcon: Icon(Icons.link, color: AppColors.primary),
+                    prefixIcon: Icon(Icons.link_rounded, color: AppColors.primary),
                   ),
                 ),
               ],
@@ -257,18 +301,18 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: _isSuccessFeedback
-                        ? AppColors.accentGreen.withValues(alpha: 0.15)
-                        : AppColors.accentRed.withValues(alpha: 0.15),
+                        ? AppColors.successMuted
+                        : AppColors.dangerMuted,
                     borderRadius: AppSpacing.roundedMd,
                     border: Border.all(
-                      color: _isSuccessFeedback ? AppColors.accentGreen : AppColors.accentRed,
+                      color: _isSuccessFeedback ? AppColors.success : AppColors.danger,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        _isSuccessFeedback ? Icons.check_circle : Icons.error,
-                        color: _isSuccessFeedback ? AppColors.accentGreen : AppColors.accentRed,
+                        _isSuccessFeedback ? AppIcons.check : Icons.error_outline_rounded,
+                        color: _isSuccessFeedback ? AppColors.success : AppColors.danger,
                         size: 20,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -276,7 +320,9 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                         child: Text(
                           _feedbackMessage!,
                           style: AppTypography.bodySmall.copyWith(
-                            color: _isSuccessFeedback ? AppColors.accentGreen : AppColors.accentRed,
+                            color: _isSuccessFeedback
+                                ? AppColors.success
+                                : AppColors.danger,
                           ),
                         ),
                       ),
@@ -287,10 +333,10 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // Submit Button
+              // Submit Button (Thumb Zone)
               PrimaryButton(
-                text: 'SUBMIT ATTEMPT',
-                icon: Icons.send,
+                text: 'Submit Attempt',
+                icon: AppIcons.check,
                 isLoading: attemptsState.isSubmitting,
                 onPressed: _handleSubmit,
               ),
@@ -298,7 +344,7 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
               const SizedBox(height: AppSpacing.xxl),
 
               // Past Attempts History
-              Text('MY RECENT ATTEMPTS', style: AppTypography.headingSmall),
+              Text('MY RECENT ATTEMPTS', style: AppTypography.labelSmall),
               const SizedBox(height: AppSpacing.sm),
               _buildAttemptsHistory(attemptsState),
             ],
@@ -314,18 +360,18 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return AppPressable(
       onTap: onTap,
-      borderRadius: AppSpacing.roundedMd,
+      enableHaptics: false,
       child: Container(
         height: AppSpacing.minTouchTarget,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryMuted : AppColors.bgCardSolid,
+          color: isSelected ? AppColors.primaryMuted : AppColors.surface1,
           borderRadius: AppSpacing.roundedMd,
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 1.5 : 1.0,
+            width: isSelected ? 1.2 : 1.0,
           ),
         ),
         child: Row(
@@ -333,7 +379,7 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: 18,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -341,6 +387,7 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
               child: Text(
                 label,
                 style: AppTypography.button.copyWith(
+                  fontSize: 14,
                   color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -354,18 +401,22 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
 
   Widget _buildStepButton(String text, VoidCallback onTap) {
     return SizedBox(
-      height: 38,
+      height: AppSpacing.minTouchTarget,
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.borderHover),
-          backgroundColor: AppColors.bgCard,
+          minimumSize: const Size(52, AppSpacing.minTouchTarget),
+          side: const BorderSide(color: AppColors.borderStrong),
+          backgroundColor: AppColors.surface2,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedSm),
+          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedMd),
         ),
         child: Text(
           text,
-          style: AppTypography.button.copyWith(color: AppColors.textPrimary, fontSize: 13),
+          style: AppTypography.button.copyWith(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+          ),
         ),
       ),
     );
@@ -385,13 +436,13 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.bgCardSolid,
+          color: AppColors.surface1,
           borderRadius: AppSpacing.roundedMd,
           border: Border.all(color: AppColors.border),
         ),
         child: Center(
           child: Text(
-            'No attempts submitted yet. Submit above to enter the leaderboard!',
+            'No attempts submitted yet. Submit above to enter the leaderboard.',
             style: AppTypography.bodySmall,
             textAlign: TextAlign.center,
           ),
@@ -402,17 +453,17 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
     return Column(
       children: state.attempts.take(10).map((attempt) {
         return Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.bgCardSolid,
+            color: AppColors.surface1,
             borderRadius: AppSpacing.roundedMd,
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
               Icon(
-                attempt.exercise == 'pushup' ? Icons.fitness_center : Icons.sports_gymnastics,
+                attempt.exercise == 'pushup' ? AppIcons.training : AppIcons.activity,
                 size: 20,
                 color: AppColors.primary,
               ),
@@ -423,8 +474,12 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
                   children: [
                     Text(
                       '${attempt.reps} ${attempt.exercise.toUpperCase()} REPS',
-                      style: AppTypography.headingSmall.copyWith(fontSize: 14),
+                      style: AppTypography.headingSmall.copyWith(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       'Proof: ${attempt.proofType} • ${_formatDate(attempt.createdAt)}',
                       style: AppTypography.bodySmall,
@@ -447,29 +502,29 @@ class _SubmitAttemptScreenState extends ConsumerState<SubmitAttemptScreen> {
 
     switch (status.toLowerCase()) {
       case 'verified':
-        pillColor = AppColors.accentGreen;
+        pillColor = AppColors.success;
         label = 'VERIFIED';
-        icon = Icons.check_circle_outline;
+        icon = AppIcons.check;
         break;
       case 'rejected':
-        pillColor = AppColors.accentRed;
+        pillColor = AppColors.danger;
         label = 'REJECTED';
-        icon = Icons.cancel_outlined;
+        icon = AppIcons.close;
         break;
       case 'pending':
       default:
-        pillColor = AppColors.accentGold;
+        pillColor = AppColors.gold;
         label = 'PENDING';
-        icon = Icons.schedule;
+        icon = AppIcons.timer;
         break;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: pillColor.withValues(alpha: 0.15),
+        color: pillColor.withValues(alpha: 0.14),
         borderRadius: AppSpacing.roundedSm,
-        border: Border.all(color: pillColor.withValues(alpha: 0.6)),
+        border: Border.all(color: pillColor.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

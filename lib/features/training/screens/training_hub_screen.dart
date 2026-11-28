@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../calisthenics/screens/calisthenics_screen.dart';
@@ -22,9 +23,9 @@ class _TrainingHubScreenState extends State<TrainingHubScreen>
   late TabController _tabController;
 
   static const _tabs = [
-    {'title': 'HABITS', 'icon': Icons.check_circle_outline},
-    {'title': 'WORKOUTS', 'icon': Icons.fitness_center},
-    {'title': 'SKILLS', 'icon': Icons.account_tree_outlined},
+    {'title': 'Habits', 'icon': AppIcons.listChecks},
+    {'title': 'Workouts', 'icon': AppIcons.training},
+    {'title': 'Skills', 'icon': AppIcons.target},
   ];
 
   @override
@@ -56,63 +57,63 @@ class _TrainingHubScreenState extends State<TrainingHubScreen>
         bottom: false,
         child: Column(
           children: [
-            // 1. Top Cyber HUD Header
+            // Calm Header
             Padding(
-              padding: const EdgeInsets.only(
-                left: AppSpacing.lg,
-                right: AppSpacing.lg,
-                top: AppSpacing.md,
-                bottom: AppSpacing.sm,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.sm,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryMuted,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
-                        ),
-                        child: const Icon(Icons.flash_on, color: AppColors.primary, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('TRAINING PROTOCOL', style: AppTypography.headingMedium),
-                          Text('COMBAT READINESS & MASTERY', style: AppTypography.labelSmall),
-                        ],
+                      Text('Training', style: AppTypography.headingLarge),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Habits, workouts & skill progression',
+                        style: AppTypography.bodySmall,
                       ),
                     ],
                   ),
                   InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppSpacing.roundedMd,
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const FocusToolsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const FocusToolsScreen(),
+                        ),
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      constraints: const BoxConstraints(
+                        minHeight: AppSpacing.minTouchTarget,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryMuted,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+                        color: AppColors.surface2,
+                        borderRadius: AppSpacing.roundedMd,
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.timer_outlined, size: 14, color: AppColors.primary),
-                          const SizedBox(width: 4),
+                          const Icon(
+                            AppIcons.timer,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
-                            'FOCUS & QUESTS',
+                            'Focus',
                             style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -123,45 +124,47 @@ class _TrainingHubScreenState extends State<TrainingHubScreen>
               ),
             ),
 
-            // 2. Cyber Segmented Main Tab Bar
+            // Segmented Tab Bar
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-              padding: const EdgeInsets.all(4),
+              margin: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
+              ),
+              padding: const EdgeInsets.all(AppSpacing.xs),
               decoration: BoxDecoration(
-                color: AppColors.bgCardSolid,
-                borderRadius: BorderRadius.circular(24),
+                color: AppColors.surface1,
+                borderRadius: AppSpacing.roundedMd,
                 border: Border.all(color: AppColors.border),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  color: AppColors.primaryMuted,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.7), width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
+                  color: AppColors.surface3,
+                  borderRadius: AppSpacing.roundedMd,
+                  border: Border.all(color: AppColors.borderStrong, width: 1),
                 ),
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: AppTypography.labelSmall.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.6,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 tabs: _tabs.map((tab) {
                   return Tab(
+                    height: 44,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(tab['icon'] as IconData, size: 16),
                         const SizedBox(width: 6),
-                        Text(tab['title'] as String),
+                        Flexible(
+                          child: Text(
+                            tab['title'] as String,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -169,7 +172,7 @@ class _TrainingHubScreenState extends State<TrainingHubScreen>
               ),
             ),
 
-            // 3. Tab Body
+            // Tab Body
             Expanded(
               child: TabBarView(
                 controller: _tabController,

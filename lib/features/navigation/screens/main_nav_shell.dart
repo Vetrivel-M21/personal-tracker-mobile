@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../competition/screens/leaderboard_screen.dart';
 import '../../competition/screens/submit_attempt_screen.dart';
@@ -10,12 +13,10 @@ import '../../training/screens/training_hub_screen.dart';
 
 class _NavBarItem {
   final IconData icon;
-  final IconData activeIcon;
   final String label;
 
   const _NavBarItem({
     required this.icon,
-    required this.activeIcon,
     required this.label,
   });
 }
@@ -32,46 +33,39 @@ class MainNavShell extends StatefulWidget {
 class _MainNavShellState extends State<MainNavShell> {
   late int _currentIndex;
 
-  static const _items = [
-    _NavBarItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
-      label: 'Home',
-    ),
-    _NavBarItem(
-      icon: Icons.track_changes_outlined,
-      activeIcon: Icons.track_changes,
-      label: 'Training',
-    ),
-    _NavBarItem(
-      icon: Icons.emoji_events_outlined,
-      activeIcon: Icons.emoji_events_rounded,
-      label: 'Arena',
-    ),
-    _NavBarItem(
-      icon: Icons.bolt_outlined,
-      activeIcon: Icons.bolt_rounded,
-      label: 'Challenge',
-    ),
-    _NavBarItem(
-      icon: Icons.group_outlined,
-      activeIcon: Icons.group_rounded,
-      label: 'Squad',
-    ),
+  // 4 primary tabs + 1 center Challenge action button (5 items max)
+  static const _tabs = [
+    _NavBarItem(icon: AppIcons.home, label: 'Home'),
+    _NavBarItem(icon: AppIcons.training, label: 'Training'),
+    _NavBarItem(icon: AppIcons.arena, label: 'Arena'),
+    _NavBarItem(icon: AppIcons.squad, label: 'Squad'),
   ];
 
   final _screens = const [
     HomeScreen(),
     TrainingHubScreen(),
     LeaderboardScreen(),
-    SubmitAttemptScreen(),
     InviteStatsScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialTab;
+    _currentIndex = widget.initialTab.clamp(0, _screens.length - 1);
+  }
+
+  void _selectTab(int index) {
+    if (_currentIndex != index) {
+      HapticFeedback.lightImpact();
+      setState(() => _currentIndex = index);
+    }
+  }
+
+  void _openChallenge() {
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SubmitAttemptScreen()),
+    );
   }
 
   @override
@@ -83,105 +77,95 @@ class _MainNavShellState extends State<MainNavShell> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: _buildFloatingNavBar(),
+      bottomNavigationBar: _buildDock(),
     );
   }
 
-  Widget _buildFloatingNavBar() {
+  Widget _buildDock() {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.only(left: 14, right: 14, bottom: 12),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
         child: Container(
-          height: 66,
+          height: 68,
           decoration: BoxDecoration(
-            color: AppColors.navBarBg,
-            borderRadius: BorderRadius.circular(33),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.28),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.14),
-                blurRadius: 18,
-                spreadRadius: 1,
-                offset: const Offset(0, 4),
+            color: AppColors.surface2,
+            borderRadius: AppSpacing.roundedXl,
+            border: Border.all(color: AppColors.border, width: 1),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Row(
+            children: [
+              _buildTabItem(0, _tabs[0]),
+              _buildTabItem(1, _tabs[1]),
+              _buildCenterChallengeButton(),
+              _buildTabItem(2, _tabs[2]),
+              _buildTabItem(3, _tabs[3]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabItem(int tabIndex, _NavBarItem item) {
+    final isSelected = _currentIndex == tabIndex;
+    return Expanded(
+      child: InkWell(
+        onTap: () => _selectTab(tabIndex),
+        borderRadius: AppSpacing.roundedMd,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSpacing.minTouchTarget),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                item.icon,
+                color: isSelected ? AppColors.primary : AppColors.textMuted,
+                size: 20,
               ),
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.5),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+              const SizedBox(height: 3),
+              Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelSmall.copyWith(
+                  color: isSelected ? AppColors.primary : AppColors.textMuted,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(_items.length, (index) {
-              final isSelected = _currentIndex == index;
-              final item = _items[index];
+        ),
+      ),
+    );
+  }
 
-              return GestureDetector(
-                onTap: () {
-                  if (_currentIndex != index) {
-                    HapticFeedback.lightImpact();
-                    setState(() => _currentIndex = index);
-                  }
-                },
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 240),
-                  curve: Curves.easeOutCubic,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isSelected ? 12 : 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.16)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(22),
-                    border: isSelected
-                        ? Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.6),
-                            width: 1.0,
-                          )
-                        : null,
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.22),
-                              blurRadius: 10,
-                              spreadRadius: 0.5,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isSelected ? item.activeIcon : item.icon,
-                        color: isSelected ? AppColors.primary : AppColors.textMuted,
-                        size: isSelected ? 22 : 20,
-                      ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          item.label.toUpperCase(),
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            }),
+  Widget _buildCenterChallengeButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: AppPressable(
+        onTap: _openChallenge,
+        enableHaptics: false,
+        child: Tooltip(
+          message: 'Start Challenge',
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              AppIcons.challenge,
+              color: AppColors.onPrimary,
+              size: 22,
+            ),
           ),
         ),
       ),

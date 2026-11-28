@@ -187,7 +187,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     decoration: BoxDecoration(
                       color: _statusBanner!.contains('fresh') || _statusBanner!.contains('sent')
                           ? AppColors.primaryMuted
-                          : AppColors.danger.withOpacity(0.15),
+                          : AppColors.danger.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: _statusBanner!.contains('fresh') || _statusBanner!.contains('sent')
