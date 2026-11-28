@@ -23,7 +23,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -32,11 +32,11 @@ class EmptyState extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.primaryMuted,
+                color: AppColors.surface2,
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.border),
               ),
-              child: Icon(icon, size: 30, color: AppColors.primary),
+              child: Icon(icon, size: 28, color: AppColors.primary),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -63,4 +63,3 @@ class EmptyState extends StatelessWidget {
     );
   }
 }
-
