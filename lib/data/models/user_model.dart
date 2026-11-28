@@ -13,6 +13,10 @@ class UserModel {
   final String? area;
   final String? district;
   final String? state;
+  final String? countryCode;
+  final String? region;
+  final String? city;
+  final bool locationVisible;
   final String referralCode;
   final bool isAdmin;
   final String createdAt;
@@ -32,10 +36,32 @@ class UserModel {
     this.area,
     this.district,
     this.state,
+    this.countryCode,
+    this.region,
+    this.city,
+    this.locationVisible = true,
     required this.referralCode,
     required this.isAdmin,
     required this.createdAt,
   });
+
+  bool get hasLocation =>
+      (countryCode != null && countryCode!.isNotEmpty) ||
+      (district != null && district!.isNotEmpty);
+
+  String get locationDisplay {
+    final globalParts = [city, region, countryCode]
+        .where((p) => p != null && p.isNotEmpty)
+        .toList();
+    if (globalParts.isNotEmpty) return globalParts.join(', ');
+
+    final legacyParts = [area, district, state]
+        .where((p) => p != null && p.isNotEmpty)
+        .toList();
+    if (legacyParts.isNotEmpty) return legacyParts.join(', ');
+
+    return 'Location Not Set';
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -53,6 +79,10 @@ class UserModel {
       area: json['area'] as String?,
       district: json['district'] as String?,
       state: json['state'] as String?,
+      countryCode: json['country_code'] as String?,
+      region: json['region'] as String?,
+      city: json['city'] as String?,
+      locationVisible: json['location_visible'] as bool? ?? true,
       referralCode: json['referral_code'] as String? ?? '',
       isAdmin: json['is_admin'] as bool? ?? false,
       createdAt: json['created_at'] as String? ?? '',
@@ -75,10 +105,13 @@ class UserModel {
       'area': area,
       'district': district,
       'state': state,
+      'country_code': countryCode,
+      'region': region,
+      'city': city,
+      'location_visible': locationVisible,
       'referral_code': referralCode,
       'is_admin': isAdmin,
       'created_at': createdAt,
     };
   }
 }
-

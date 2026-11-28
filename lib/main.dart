@@ -43,7 +43,7 @@ class AuraApp extends ConsumerWidget {
         );
       case AuthStatus.authenticated:
         final user = authState.user;
-        if (user != null && (user.district == null || user.district!.isEmpty)) {
+        if (user != null && !user.hasLocation) {
           return const LocationSetupScreen();
         }
         return const MainNavShell();

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/tamil_nadu_locations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/app_buttons.dart';
@@ -15,56 +17,119 @@ class LocationSetupScreen extends ConsumerStatefulWidget {
   const LocationSetupScreen({super.key, this.isModal = false});
 
   @override
-  ConsumerState<LocationSetupScreen> createState() => _LocationSetupScreenState();
+  ConsumerState<LocationSetupScreen> createState() =>
+      _LocationSetupScreenState();
 }
 
 class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
-  late String _selectedState;
-  late String _selectedDistrict;
-  late String _selectedArea;
-  final TextEditingController _customAreaController = TextEditingController();
-  bool _isCustomArea = false;
+  static const List<Map<String, String>> _countries = [
+    {'code': 'IN', 'name': 'India (IN)'},
+    {'code': 'US', 'name': 'United States (US)'},
+    {'code': 'GB', 'name': 'United Kingdom (GB)'},
+    {'code': 'CA', 'name': 'Canada (CA)'},
+    {'code': 'AU', 'name': 'Australia (AU)'},
+    {'code': 'DE', 'name': 'Germany (DE)'},
+    {'code': 'FR', 'name': 'France (FR)'},
+    {'code': 'JP', 'name': 'Japan (JP)'},
+    {'code': 'SG', 'name': 'Singapore (SG)'},
+    {'code': 'AE', 'name': 'UAE (AE)'},
+    {'code': 'BR', 'name': 'Brazil (BR)'},
+  ];
+
+  late String _selectedCountryCode;
+  final TextEditingController _regionController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  bool _locationVisible = true;
   bool _isSaving = false;
   String? _errorMessage;
+
+  List<String> _regionSuggestions = [];
+  List<String> _citySuggestions = [];
+  Timer? _regionDebounce;
+  Timer? _cityDebounce;
 
   @override
   void initState() {
     super.initState();
     final user = ref.read(authNotifierProvider).user;
-    _selectedState = user?.state ?? TamilNaduLocations.defaultState;
-    _selectedDistrict = user?.district ?? 'Chennai';
-    _selectedArea = user?.area ?? 'Adyar';
-
-    final popular = TamilNaduLocations.getAreasForDistrict(_selectedDistrict);
-    if (!popular.contains(_selectedArea) && _selectedArea.isNotEmpty) {
-      _isCustomArea = true;
-      _customAreaController.text = _selectedArea;
-    }
+    final initialCC = (user?.countryCode ?? 'IN').toUpperCase();
+    _selectedCountryCode =
+        _countries.any((c) => c['code'] == initialCC) ? initialCC : 'IN';
+    _regionController.text = user?.region ?? user?.state ?? '';
+    _cityController.text = user?.city ?? user?.district ?? '';
+    _locationVisible = user?.locationVisible ?? true;
   }
 
   @override
   void dispose() {
-    _customAreaController.dispose();
+    _regionDebounce?.cancel();
+    _cityDebounce?.cancel();
+    _regionController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
+  void _onRegionChanged(String value) {
+    _regionDebounce?.cancel();
+    _regionDebounce = Timer(const Duration(milliseconds: 280), () async {
+      final q = value.trim();
+      if (q.isEmpty) {
+        if (mounted) setState(() => _regionSuggestions = []);
+        return;
+      }
+      try {
+        final results = await ref
+            .read(competitionRepositoryProvider)
+            .suggestLocations(
+              type: 'region',
+              countryCode: _selectedCountryCode,
+              query: q,
+            );
+        if (mounted) setState(() => _regionSuggestions = results);
+      } catch (_) {
+        // Offline/rate-limit safe: silently keep manual input
+      }
+    });
+  }
+
+  void _onCityChanged(String value) {
+    _cityDebounce?.cancel();
+    _cityDebounce = Timer(const Duration(milliseconds: 280), () async {
+      final q = value.trim();
+      if (q.isEmpty) {
+        if (mounted) setState(() => _citySuggestions = []);
+        return;
+      }
+      try {
+        final results = await ref
+            .read(competitionRepositoryProvider)
+            .suggestLocations(
+              type: 'city',
+              countryCode: _selectedCountryCode,
+              query: q,
+            );
+        if (mounted) setState(() => _citySuggestions = results);
+      } catch (_) {
+        // Offline/rate-limit safe: silently keep manual input
+      }
+    });
+  }
+
   Future<void> _handleSaveLocation() async {
+    final region = _regionController.text.trim();
+    final city = _cityController.text.trim();
+
+    if (region.isEmpty || city.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your region and city to join local leaderboards.';
+      });
+      return;
+    }
+
     setState(() {
       _isSaving = true;
       _errorMessage = null;
     });
-
-    final finalArea = _isCustomArea
-        ? _customAreaController.text.trim()
-        : _selectedArea;
-
-    if (finalArea.isEmpty) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = 'Please specify your area to rank on the local leaderboard.';
-      });
-      return;
-    }
 
     try {
       final repo = ref.read(competitionRepositoryProvider);
@@ -73,9 +138,10 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
 
       final updatedUser = await repo.updateProfileLocation(
         displayName: displayName,
-        state: _selectedState,
-        district: _selectedDistrict,
-        area: finalArea,
+        countryCode: _selectedCountryCode,
+        region: region,
+        city: city,
+        locationVisible: _locationVisible,
       );
 
       ref.read(authNotifierProvider.notifier).updateUser(updatedUser);
@@ -101,8 +167,6 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final availableAreas = TamilNaduLocations.getAreasForDistrict(_selectedDistrict);
-
     return Scaffold(
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
@@ -115,26 +179,44 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // System Banner
+              // Calm Territory Banner (surface1 + 1px hairline)
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryMuted,
+                  color: AppColors.surface1,
                   borderRadius: AppSpacing.roundedMd,
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.shield_outlined, color: AppColors.primary, size: 28),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface2,
+                        borderRadius: AppSpacing.roundedSm,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(
+                        AppIcons.location,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('LOCAL MAX-REP CHALLENGE', style: AppTypography.headingSmall),
+                          Text(
+                            'GLOBAL ARENA TERRITORY',
+                            style: AppTypography.headingSmall.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
-                            'Compete in push-ups and pull-ups for your area, district, and Tamil Nadu state honors.',
+                            'Compete across city, region, country, and global leaderboards.',
                             style: AppTypography.bodySmall,
                           ),
                         ],
@@ -145,63 +227,37 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
               ),
               const SizedBox(height: AppSpacing.xl),
 
-              // State Selector
-              Text('STATE', style: AppTypography.headingSmall),
-              const SizedBox(height: AppSpacing.xs),
+              // Country Selector
+              Text('COUNTRY', style: AppTypography.labelSmall),
+              const SizedBox(height: AppSpacing.sm),
               Container(
+                constraints: const BoxConstraints(
+                  minHeight: AppSpacing.minTouchTarget,
+                ),
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.bgCardSolid,
+                  color: AppColors.surface2,
                   borderRadius: AppSpacing.roundedMd,
                   border: Border.all(color: AppColors.border),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: _selectedState,
+                    value: _selectedCountryCode,
                     isExpanded: true,
-                    dropdownColor: AppColors.bgCardSolid,
-                    items: TamilNaduLocations.states.map((s) {
+                    dropdownColor: AppColors.surface3,
+                    items: _countries.map((c) {
                       return DropdownMenuItem(
-                        value: s,
-                        child: Text(s, style: AppTypography.bodyLarge),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedState = val);
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // District Selector
-              Text('DISTRICT', style: AppTypography.headingSmall),
-              const SizedBox(height: AppSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.bgCardSolid,
-                  borderRadius: AppSpacing.roundedMd,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedDistrict,
-                    isExpanded: true,
-                    dropdownColor: AppColors.bgCardSolid,
-                    items: TamilNaduLocations.districts.map((d) {
-                      return DropdownMenuItem(
-                        value: d,
-                        child: Text(d, style: AppTypography.bodyLarge),
+                        value: c['code'],
+                        child: Text(c['name']!, style: AppTypography.bodyLarge),
                       );
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) {
+                        HapticFeedback.selectionClick();
                         setState(() {
-                          _selectedDistrict = val;
-                          final areas = TamilNaduLocations.getAreasForDistrict(val);
-                          _selectedArea = areas.first;
-                          _isCustomArea = false;
+                          _selectedCountryCode = val;
+                          _regionSuggestions = [];
+                          _citySuggestions = [];
                         });
                       }
                     },
@@ -210,74 +266,120 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // Area Selector
-              Text('AREA / LOCALITY', style: AppTypography.headingSmall),
-              const SizedBox(height: AppSpacing.xs),
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  ...availableAreas.map((area) {
-                    final isSelected = !_isCustomArea && _selectedArea == area;
-                    return ChoiceChip(
-                      label: Text(area),
-                      selected: isSelected,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.bgCardSolid,
-                      labelStyle: AppTypography.rawChipLabelDefault(
-                        isSelected ? AppColors.bgMain : AppColors.textPrimary,
+              // Region Input + Autocomplete Suggestions
+              Text('REGION / STATE', style: AppTypography.labelSmall),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _regionController,
+                style: AppTypography.bodyLarge,
+                onChanged: _onRegionChanged,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Tamil Nadu, California, Ontario',
+                  prefixIcon: Icon(AppIcons.location, color: AppColors.primary),
+                ),
+              ),
+              if (_regionSuggestions.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: _regionSuggestions.map((s) {
+                    return ActionChip(
+                      label: Text(s),
+                      backgroundColor: AppColors.surface2,
+                      side: const BorderSide(color: AppColors.border),
+                      labelStyle: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textPrimary,
                       ),
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedArea = area;
-                          _isCustomArea = false;
-                        });
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        _regionController.text = s;
+                        setState(() => _regionSuggestions = []);
                       },
                     );
-                  }),
-                  ChoiceChip(
-                    label: const Text('+ Custom Area'),
-                    selected: _isCustomArea,
-                    selectedColor: AppColors.primary,
-                    backgroundColor: AppColors.bgCardSolid,
-                    labelStyle: AppTypography.rawChipLabelDefault(
-                      _isCustomArea ? AppColors.bgMain : AppColors.textPrimary,
-                    ),
-                    onSelected: (_) {
-                      setState(() => _isCustomArea = true);
-                    },
-                  ),
-                ],
-              ),
-
-              if (_isCustomArea) ...[
-                const SizedBox(height: AppSpacing.md),
-                TextField(
-                  controller: _customAreaController,
-                  style: AppTypography.bodyLarge,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter your Area / Ward Name',
-                    hintText: 'e.g. Velachery West',
-                    prefixIcon: Icon(Icons.location_on_outlined, color: AppColors.primary),
-                  ),
+                  }).toList(),
                 ),
               ],
+              const SizedBox(height: AppSpacing.lg),
+
+              // City Input + Autocomplete Suggestions
+              Text('CITY', style: AppTypography.labelSmall),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _cityController,
+                style: AppTypography.bodyLarge,
+                onChanged: _onCityChanged,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Chennai, San Francisco, Toronto',
+                  prefixIcon: Icon(AppIcons.target, color: AppColors.primary),
+                ),
+              ),
+              if (_citySuggestions.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: _citySuggestions.map((s) {
+                    return ActionChip(
+                      label: Text(s),
+                      backgroundColor: AppColors.surface2,
+                      side: const BorderSide(color: AppColors.border),
+                      labelStyle: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        _cityController.text = s;
+                        setState(() => _citySuggestions = []);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+
+              // Location Visibility Toggle
+              Material(
+                color: AppColors.surface1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppSpacing.roundedMd,
+                  side: const BorderSide(color: AppColors.border),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: SwitchListTile(
+                  value: _locationVisible,
+                  activeThumbColor: AppColors.primary,
+                  title: Text(
+                    'Show on local leaderboards',
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'When off, you only appear on the global leaderboard without your city or region.',
+                    style: AppTypography.bodySmall,
+                  ),
+                  onChanged: (val) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _locationVisible = val);
+                  },
+                ),
+              ),
 
               if (_errorMessage != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   _errorMessage!,
-                  style: AppTypography.bodyMedium.copyWith(color: AppColors.accentRed),
+                  style: AppTypography.rawDangerSmall,
                   textAlign: TextAlign.center,
                 ),
               ],
+              const SizedBox(height: AppSpacing.xl),
 
-              const SizedBox(height: AppSpacing.xxl),
-
-              // Confirm CTA Button
+              // Submit CTA
               PrimaryButton(
                 text: 'ENTER ARENA',
-                icon: Icons.flash_on,
+                icon: AppIcons.check,
                 isLoading: _isSaving,
                 onPressed: _handleSaveLocation,
               ),
@@ -288,4 +390,3 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
     );
   }
 }
-
