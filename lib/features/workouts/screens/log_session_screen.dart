@@ -490,7 +490,7 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
             controller: _notesController,
             maxLines: 2,
             style: AppTypography.bodySmall,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'e.g., Felt strong on bench press, bumped up 2.5kg...',
               hintStyle: AppTypography.rawTextMuted,
               border: InputBorder.none,
@@ -581,7 +581,7 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
       setState(() => _isSaving = false);
       if (session != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             backgroundColor: AppColors.primary,
             content: Text(
               'Session logged! +50 XP granted for gym consistency.',

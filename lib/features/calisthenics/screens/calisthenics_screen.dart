@@ -190,7 +190,7 @@ class _CalisthenicsScreenState extends ConsumerState<CalisthenicsScreen>
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Confirm Unlock', style: AppTypography.rawOnPrimary),
+            child: Text('Confirm Unlock', style: AppTypography.rawOnPrimary),
           ),
         ],
       ),

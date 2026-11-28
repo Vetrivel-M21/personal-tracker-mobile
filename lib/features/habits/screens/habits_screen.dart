@@ -127,7 +127,7 @@ class HabitsScreen extends ConsumerWidget {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => _showAddHabitDialog(context, notifier),
             icon: const Icon(Icons.add, color: AppColors.bgMain),
-            label: const Text('Create First Habit', style: AppTypography.rawOnPrimary),
+            label: Text('Create First Habit', style: AppTypography.rawOnPrimary),
           ),
         ],
       ),
@@ -144,7 +144,7 @@ class HabitsScreen extends ConsumerWidget {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'e.g. Read 20 mins, Drink 3L water',
             hintStyle: AppTypography.rawTextMuted,
           ),
@@ -164,7 +164,7 @@ class HabitsScreen extends ConsumerWidget {
                 await notifier.createHabit(name);
               }
             },
-            child: const Text('Create', style: AppTypography.rawOnPrimary),
+            child: Text('Create', style: AppTypography.rawOnPrimary),
           ),
         ],
       ),

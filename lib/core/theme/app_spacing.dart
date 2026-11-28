@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// 8pt spacing grid, 16-24dp radii, and >= 48dp touch targets.
 class AppSpacing {
   AppSpacing._();
 
@@ -8,18 +9,18 @@ class AppSpacing {
   static const double sm = 8.0;
   static const double md = 12.0;
   static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
+  static const double xl = 24.0;
+  static const double xxl = 32.0;
+  static const double xxxl = 40.0;
 
-  // Touch Target Rule: 48px minimum
+  // Touch Target Rule: 48dp minimum (Android Material + WCAG)
   static const double minTouchTarget = 48.0;
 
-  // Radii
-  static const double radiusSm = 6.0;
-  static const double radiusMd = 8.0;
-  static const double radiusLg = 10.0;
-  static const double radiusXl = 16.0;
+  // Radii (16-24dp primary scale; 8dp reserved for inner chips/tags)
+  static const double radiusSm = 8.0;
+  static const double radiusMd = 16.0;
+  static const double radiusLg = 20.0;
+  static const double radiusXl = 24.0;
   static const double radiusFull = 999.0;
   static const double radiusPill = 999.0;
 

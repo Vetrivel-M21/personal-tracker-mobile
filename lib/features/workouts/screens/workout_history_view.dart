@@ -377,7 +377,7 @@ class _WorkoutHistoryViewState extends State<WorkoutHistoryView> {
                 style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
               ),
               if (sessionVolume > 0) ...[
-                const Text(' • ', style: AppTypography.rawTextMuted),
+                Text(' • ', style: AppTypography.rawTextMuted),
                 Text(
                   '${sessionVolume.toInt()} kg volume',
                   style: AppTypography.bodySmall.copyWith(color: AppColors.secondary, fontWeight: FontWeight.w600),
@@ -424,7 +424,7 @@ class _WorkoutHistoryViewState extends State<WorkoutHistoryView> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('▸ ', style: AppTypography.rawPrefixBullet),
+                  Text('▸ ', style: AppTypography.rawPrefixBullet),
                   Expanded(
                     flex: 4,
                     child: Text(
