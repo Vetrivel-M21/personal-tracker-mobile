@@ -3,38 +3,50 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
 
+/// Level badge: uses Orbitron strictly for the level number and violet
+/// strictly for rank/level identity. Glow appears only on earned moments.
 class LevelBadge extends StatelessWidget {
   final int level;
+  final bool isEarned;
 
-  const LevelBadge({super.key, required this.level});
+  const LevelBadge({
+    super.key,
+    required this.level,
+    this.isEarned = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.secondary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.rankViolet.withValues(alpha: 0.16),
         borderRadius: AppSpacing.roundedSm,
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.secondaryGlow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
+        border: Border.all(
+          color: AppColors.rankViolet.withValues(alpha: 0.55),
+          width: 1,
+        ),
+        boxShadow: isEarned ? [AppColors.earnedGlow(AppColors.rankViolet)] : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'LVL ',
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.rankViolet,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            '$level',
+            style: AppTypography.levelNumber.copyWith(
+              fontSize: 13,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
-      ),
-      child: Text(
-        'LVL $level',
-        style: AppTypography.badge.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
       ),
     );
   }
 }
-

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/competition_models.dart';
@@ -26,27 +29,31 @@ class LeaderboardScreen extends ConsumerWidget {
         title: Text('ARENA LEADERBOARD', style: AppTypography.headingMedium),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: () => notifier.fetchLeaderboard(),
+            icon: const Icon(AppIcons.refresh, color: AppColors.textSecondary),
+            tooltip: 'Refresh',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              notifier.fetchLeaderboard();
+            },
           ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Exercise Tab Toggle (Push-up / Pull-up)
             _buildExerciseToggle(state.filter.exercise, notifier),
-
-            // Scope & Period Filter Controls
             _buildFilterRow(state.filter, notifier),
-
-            // Leaderboard Content List
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
-                backgroundColor: AppColors.bgCardSolid,
+                backgroundColor: AppColors.surface2,
                 onRefresh: () => notifier.fetchLeaderboard(),
-                child: _buildLeaderboardBody(context, state, notifier, currentUser?.id),
+                child: _buildLeaderboardBody(
+                  context,
+                  state,
+                  notifier,
+                  currentUser?.id,
+                ),
               ),
             ),
           ],
@@ -57,10 +64,13 @@ class LeaderboardScreen extends ConsumerWidget {
 
   Widget _buildExerciseToggle(String selected, LeaderboardNotifier notifier) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-      padding: const EdgeInsets.all(AppSpacing.xxs),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xs,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.bgCardSolid,
+        color: AppColors.surface1,
         borderRadius: AppSpacing.roundedMd,
         border: Border.all(color: AppColors.border),
       ),
@@ -69,17 +79,23 @@ class LeaderboardScreen extends ConsumerWidget {
           Expanded(
             child: _buildTabButton(
               label: 'PUSH-UPS',
-              icon: Icons.fitness_center,
+              icon: AppIcons.training,
               isSelected: selected == 'pushup',
-              onTap: () => notifier.setExercise('pushup'),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                notifier.setExercise('pushup');
+              },
             ),
           ),
           Expanded(
             child: _buildTabButton(
               label: 'PULL-UPS',
-              icon: Icons.sports_gymnastics,
+              icon: AppIcons.activity,
               isSelected: selected == 'pullup',
-              onTap: () => notifier.setExercise('pullup'),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                notifier.setExercise('pullup');
+              },
             ),
           ),
         ],
@@ -95,13 +111,13 @@ class LeaderboardScreen extends ConsumerWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: AppSpacing.roundedSm,
+      borderRadius: AppSpacing.roundedMd,
       child: Container(
-        height: 42,
+        height: AppSpacing.minTouchTarget,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: AppSpacing.roundedSm,
+          borderRadius: AppSpacing.roundedMd,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -109,13 +125,13 @@ class LeaderboardScreen extends ConsumerWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? AppColors.bgMain : AppColors.textSecondary,
+              color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(
               label,
               style: AppTypography.button.copyWith(
-                color: isSelected ? AppColors.bgMain : AppColors.textSecondary,
+                color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
               ),
             ),
           ],
@@ -124,83 +140,59 @@ class LeaderboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterRow(LeaderboardFilter filter, LeaderboardNotifier notifier) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-      child: Column(
+  Widget _buildFilterRow(
+    LeaderboardFilter filter,
+    LeaderboardNotifier notifier,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
         children: [
-          // Scope filters: Area, District, State, All
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildScopeChip('District', 'district', filter.scope, notifier),
-                const SizedBox(width: AppSpacing.xs),
-                _buildScopeChip('Area', 'area', filter.scope, notifier),
-                const SizedBox(width: AppSpacing.xs),
-                _buildScopeChip('State', 'state', filter.scope, notifier),
-                const SizedBox(width: AppSpacing.xs),
-                _buildScopeChip('Global', 'all', filter.scope, notifier),
-                const SizedBox(width: AppSpacing.md),
-                Container(width: 1, height: 24, color: AppColors.border),
-                const SizedBox(width: AppSpacing.md),
-                // Period filters: All-time, Week
-                _buildPeriodChip('All-Time', 'all_time', filter.period, notifier),
-                const SizedBox(width: AppSpacing.xs),
-                _buildPeriodChip('Weekly', 'week', filter.period, notifier),
-              ],
-            ),
+          _buildFilterChip('Area', 'area', filter.scope, (v) => notifier.setScope(v)),
+          const SizedBox(width: AppSpacing.sm),
+          _buildFilterChip('District', 'district', filter.scope, (v) => notifier.setScope(v)),
+          const SizedBox(width: AppSpacing.sm),
+          _buildFilterChip('State', 'state', filter.scope, (v) => notifier.setScope(v)),
+          Container(
+            height: 20,
+            width: 1,
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            color: AppColors.border,
           ),
+          _buildFilterChip('This Week', 'weekly', filter.period, (v) => notifier.setPeriod(v)),
+          const SizedBox(width: AppSpacing.sm),
+          _buildFilterChip('All-Time', 'all_time', filter.period, (v) => notifier.setPeriod(v)),
         ],
       ),
     );
   }
 
-  Widget _buildScopeChip(
+  Widget _buildFilterChip(
     String label,
-    String scopeValue,
-    String currentScope,
-    LeaderboardNotifier notifier,
+    String value,
+    String current,
+    ValueChanged<String> onSelect,
   ) {
-    final isSelected = currentScope == scopeValue;
+    final isSelected = current == value;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       selectedColor: AppColors.primaryMuted,
-      backgroundColor: AppColors.bgCardSolid,
+      backgroundColor: AppColors.surface2,
       side: BorderSide(
         color: isSelected ? AppColors.primary : AppColors.border,
       ),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
+      labelStyle: AppTypography.rawChipLabel(
+        isSelected ? AppColors.primary : AppColors.textSecondary,
       ),
-      onSelected: (_) => notifier.setScope(scopeValue),
-    );
-  }
-
-  Widget _buildPeriodChip(
-    String label,
-    String periodValue,
-    String currentPeriod,
-    LeaderboardNotifier notifier,
-  ) {
-    final isSelected = currentPeriod == periodValue;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: AppColors.secondary.withValues(alpha: 0.2),
-      backgroundColor: AppColors.bgCardSolid,
-      side: BorderSide(
-        color: isSelected ? AppColors.secondary : AppColors.border,
-      ),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.secondary : AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
-      ),
-      onSelected: (_) => notifier.setPeriod(periodValue),
+      onSelected: (_) {
+        HapticFeedback.selectionClick();
+        onSelect(value);
+      },
     );
   }
 
@@ -221,13 +213,17 @@ class LeaderboardScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off, size: 48, color: AppColors.accentRed),
+              const Icon(Icons.cloud_off_rounded, size: 44, color: AppColors.danger),
               const SizedBox(height: AppSpacing.md),
-              Text(state.errorMessage!, textAlign: TextAlign.center, style: AppTypography.bodyMedium),
+              Text(
+                state.errorMessage!,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMedium,
+              ),
               const SizedBox(height: AppSpacing.lg),
               PrimaryButton(
-                text: 'RETRY',
-                icon: Icons.refresh,
+                text: 'Retry',
+                icon: AppIcons.refresh,
                 onPressed: () => notifier.fetchLeaderboard(),
               ),
             ],
@@ -243,11 +239,11 @@ class LeaderboardScreen extends ConsumerWidget {
         children: [
           const SizedBox(height: AppSpacing.xxl),
           EmptyState(
-            icon: Icons.emoji_events_outlined,
+            icon: AppIcons.arena,
             title: 'No Verified Records Yet',
             description:
-                'Be the first athlete to record push-ups or pull-ups in this territory and seize Rank #1!',
-            buttonText: 'POST REPS NOW',
+                'Be the first athlete to record push-ups or pull-ups in this territory.',
+            buttonText: 'Post Reps Now',
             onButtonPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SubmitAttemptScreen()),
@@ -260,12 +256,20 @@ class LeaderboardScreen extends ConsumerWidget {
 
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        104,
+      ),
       itemCount: entries.length,
       itemBuilder: (context, index) {
         final entry = entries[index];
         final isMe = currentUserId != null && entry.userId == currentUserId;
-        return _buildCompetitorRow(entry, isMe);
+        return AppStaggeredEntrance(
+          index: index,
+          child: _buildCompetitorRow(entry, isMe),
+        );
       },
     );
   }
@@ -275,21 +279,17 @@ class LeaderboardScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isMe ? AppColors.primaryMuted : AppColors.bgCardSolid,
+        color: isMe ? AppColors.primaryMuted : AppColors.surface1,
         borderRadius: AppSpacing.roundedMd,
         border: Border.all(
           color: isMe ? AppColors.primary : AppColors.border,
-          width: isMe ? 1.5 : 1.0,
+          width: isMe ? 1.2 : 1.0,
         ),
-        boxShadow: isMe ? [AppColors.glowShadow(AppColors.primary)] : null,
       ),
       child: Row(
         children: [
-          // Rank Badge
           _buildRankNumber(entry.rank),
           const SizedBox(width: AppSpacing.md),
-
-          // Athlete Name & Location
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,14 +308,20 @@ class LeaderboardScreen extends ConsumerWidget {
                     if (isMe) ...[
                       const SizedBox(width: AppSpacing.xs),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: AppSpacing.roundedSm,
                         ),
                         child: Text(
                           'YOU',
-                          style: AppTypography.badge.copyWith(color: AppColors.bgMain, fontSize: 9),
+                          style: AppTypography.badge.copyWith(
+                            color: AppColors.onPrimary,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ],
@@ -330,25 +336,26 @@ class LeaderboardScreen extends ConsumerWidget {
               ],
             ),
           ),
-
-          // Reps Count Score
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
             decoration: BoxDecoration(
-              color: AppColors.bgCard,
+              color: AppColors.surface2,
               borderRadius: AppSpacing.roundedSm,
               border: Border.all(color: AppColors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.bolt, size: 16, color: AppColors.accentGold),
+                const Icon(AppIcons.challenge, size: 15, color: AppColors.gold),
                 const SizedBox(width: 4),
                 Text(
                   '${entry.bestReps}',
-                  style: AppTypography.displayMedium.copyWith(fontSize: 18),
+                  style: AppTypography.statNumber.copyWith(fontSize: 17),
                 ),
-                const SizedBox(width: 2),
+                const SizedBox(width: 3),
                 Text('reps', style: AppTypography.bodySmall),
               ],
             ),
@@ -361,11 +368,11 @@ class LeaderboardScreen extends ConsumerWidget {
   Widget _buildRankNumber(int rank) {
     Color rankColor;
     if (rank == 1) {
-      rankColor = AppColors.accentGold;
+      rankColor = AppColors.gold;
     } else if (rank == 2) {
-      rankColor = const Color(0xFFE2E8F0); // Silver
+      rankColor = AppColors.rankSilver;
     } else if (rank == 3) {
-      rankColor = const Color(0xFFCD7F32); // Bronze
+      rankColor = AppColors.rankBronze;
     } else {
       rankColor = AppColors.textMuted;
     }
@@ -376,14 +383,14 @@ class LeaderboardScreen extends ConsumerWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: rankColor.withValues(alpha: 0.15),
-        border: Border.all(color: rankColor.withValues(alpha: 0.6)),
+        color: rankColor.withValues(alpha: 0.14),
+        border: Border.all(color: rankColor.withValues(alpha: 0.5)),
       ),
       child: Text(
         '$rank',
-        style: AppTypography.headingSmall.copyWith(
+        style: AppTypography.badge.copyWith(
           color: rankColor,
-          fontWeight: FontWeight.w700,
+          fontSize: 13,
         ),
       ),
     );
@@ -399,12 +406,12 @@ class LeaderboardScreen extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.bgCardSolid,
+            color: AppColors.surface1,
             borderRadius: AppSpacing.roundedMd,
             border: Border.all(color: AppColors.border),
           ),
-          child: Row(
-            children: const [
+          child: const Row(
+            children: [
               SkeletonLoader(width: 36, height: 36),
               SizedBox(width: AppSpacing.md),
               Expanded(
@@ -425,4 +432,3 @@ class LeaderboardScreen extends ConsumerWidget {
     );
   }
 }
-

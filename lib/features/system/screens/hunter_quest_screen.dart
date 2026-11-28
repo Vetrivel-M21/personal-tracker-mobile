@@ -425,7 +425,7 @@ class _HunterQuestScreenState extends ConsumerState<HunterQuestScreen> with Sing
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: canClaim ? AppColors.secondary : AppColors.bgCardSolid,
-            foregroundColor: canClaim ? Colors.white : AppColors.textMuted,
+            foregroundColor: canClaim ? AppColors.white : AppColors.textMuted,
             shape: RoundedRectangleBorder(
               borderRadius: AppSpacing.roundedMd,
               side: BorderSide(color: canClaim ? AppColors.secondary : AppColors.border),
@@ -444,7 +444,7 @@ class _HunterQuestScreenState extends ConsumerState<HunterQuestScreen> with Sing
             canClaim ? 'CLAIM QUEST REWARDS (+${quest.rewardXp} EXP)' : 'TRIALS IN PROGRESS',
             style: AppTypography.labelLarge.copyWith(
               fontWeight: FontWeight.bold,
-              color: canClaim ? Colors.white : AppColors.textMuted,
+              color: canClaim ? AppColors.white : AppColors.textMuted,
             ),
           ),
         ),

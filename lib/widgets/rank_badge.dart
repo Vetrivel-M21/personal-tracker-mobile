@@ -5,8 +5,13 @@ import '../core/theme/app_typography.dart';
 
 class RankBadge extends StatelessWidget {
   final String rank; // 'E', 'D', 'C', 'B', 'A', 'S'
+  final bool isEarned;
 
-  const RankBadge({super.key, required this.rank});
+  const RankBadge({
+    super.key,
+    required this.rank,
+    this.isEarned = false,
+  });
 
   factory RankBadge.fromXP(int xp) {
     if (xp >= 10000) return const RankBadge(rank: 'S');
@@ -37,23 +42,14 @@ class RankBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _getRankColor();
-    final isSRank = rank.toUpperCase() == 'S';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.14),
         borderRadius: AppSpacing.roundedFull,
-        border: Border.all(color: color, width: 1.2),
-        boxShadow: isSRank
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ]
-            : null,
+        border: Border.all(color: color.withValues(alpha: 0.55), width: 1),
+        boxShadow: isEarned ? [AppColors.earnedGlow(color)] : null,
       ),
       child: Text(
         '${rank.toUpperCase()}-RANK',
@@ -62,4 +58,3 @@ class RankBadge extends StatelessWidget {
     );
   }
 }
-

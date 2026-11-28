@@ -58,7 +58,7 @@ class ShareCard extends StatelessWidget {
             spreadRadius: 2,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.6),
+            color: AppColors.black.withValues(alpha: 0.6),
             blurRadius: 10,
             offset: const Offset(0, 8),
           ),

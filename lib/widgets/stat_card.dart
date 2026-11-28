@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_motion.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
 
@@ -23,29 +24,28 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
+    final card = Material(
+      color: AppColors.surface1,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppSpacing.roundedMd,
+        side: const BorderSide(color: AppColors.border, width: 1),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: AppSpacing.roundedMd,
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.bgCardSolid,
-            borderRadius: AppSpacing.roundedMd,
-            border: Border.all(color: AppColors.border),
-          ),
           child: Row(
             children: [
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.15),
+                  color: iconColor.withValues(alpha: 0.12),
                   borderRadius: AppSpacing.roundedSm,
-                  border: Border.all(color: iconColor.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppColors.border),
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -55,14 +55,16 @@ class StatCard extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: AppTypography.headingSmall,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       value,
-                      style: AppTypography.displayMedium.copyWith(fontSize: 20),
+                      style: AppTypography.statNumber.copyWith(fontSize: 20),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -83,6 +85,7 @@ class StatCard extends StatelessWidget {
         ),
       ),
     );
+
+    return onTap != null ? AppPressable(onTap: onTap, child: card) : card;
   }
 }
-

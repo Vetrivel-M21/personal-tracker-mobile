@@ -376,7 +376,7 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
                 style: AppTypography.bodySmall,
                 decoration: InputDecoration(
                   hintText: s.isTimed ? '30s' : 'BW',
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  hintStyle: AppTypography.rawHintMicro,
                   border: InputBorder.none,
                   isDense: true,
                 ),
@@ -400,7 +400,7 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
                 style: AppTypography.bodySmall,
                 decoration: InputDecoration(
                   hintText: s.isTimed ? 'kg' : 'reps',
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  hintStyle: AppTypography.rawHintMicro,
                   border: InputBorder.none,
                   isDense: true,
                 ),
@@ -490,9 +490,9 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
             controller: _notesController,
             maxLines: 2,
             style: AppTypography.bodySmall,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'e.g., Felt strong on bench press, bumped up 2.5kg...',
-              hintStyle: TextStyle(color: AppColors.textMuted),
+              hintStyle: AppTypography.rawTextMuted,
               border: InputBorder.none,
             ),
           ),
@@ -581,11 +581,11 @@ class _LogSessionScreenState extends ConsumerState<LogSessionScreen> {
       setState(() => _isSaving = false);
       if (session != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             backgroundColor: AppColors.primary,
             content: Text(
               'Session logged! +50 XP granted for gym consistency.',
-              style: TextStyle(color: AppColors.bgMain, fontWeight: FontWeight.bold),
+              style: AppTypography.rawOnPrimaryBold,
             ),
           ),
         );

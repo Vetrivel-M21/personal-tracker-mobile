@@ -13,23 +13,57 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.bgMain,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
-        secondary: AppColors.secondary,
-        surface: AppColors.bgCardSolid,
+        secondary: AppColors.rankViolet,
+        surface: AppColors.surface1,
+        surfaceContainerHigh: AppColors.surface2,
+        surfaceContainerHighest: AppColors.surface3,
         error: AppColors.danger,
-        onPrimary: AppColors.bgMain,
-        onSecondary: Colors.white,
+        onPrimary: AppColors.onPrimary,
+        onSecondary: AppColors.white,
         onSurface: AppColors.textPrimary,
+        outline: AppColors.border,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.bgMain,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.headingLarge,
+        titleTextStyle: AppTypography.headingMedium,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.border,
+        thickness: 1,
+        space: 1,
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.surface1,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppSpacing.roundedMd,
+          side: const BorderSide(color: AppColors.border, width: 1),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surface3,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppSpacing.roundedLg,
+          side: const BorderSide(color: AppColors.borderStrong, width: 1),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface3,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.bgCardSolid,
+        fillColor: AppColors.surface2,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.roundedMd,
@@ -54,21 +88,29 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, AppSpacing.minTouchTarget),
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.bgMain,
+          foregroundColor: AppColors.onPrimary,
           textStyle: AppTypography.button,
           shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedMd),
-          elevation: 4,
-          shadowColor: AppColors.primaryGlow,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(double.infinity, AppSpacing.minTouchTarget),
+          foregroundColor: AppColors.textPrimary,
+          side: const BorderSide(color: AppColors.borderStrong, width: 1),
+          textStyle: AppTypography.button,
+          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedMd),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.bgSidebar,
+        backgroundColor: AppColors.surface2,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textMuted,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
       ),
     );
   }
 }
-

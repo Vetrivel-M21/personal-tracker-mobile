@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/services/analytics_service.dart';
 import '../../../widgets/app_buttons.dart';
 import '../../../widgets/exp_bar.dart';
 import '../../../widgets/level_badge.dart';
@@ -15,7 +17,6 @@ import '../../habits/providers/habits_provider.dart';
 import '../../onboarding/screens/location_setup_screen.dart';
 import '../../sharing/services/invite_link_service.dart';
 import '../../sharing/services/share_card_service.dart';
-import '../../../data/services/analytics_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -30,7 +31,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Referral code "$code" copied to clipboard!'),
+        content: Text(
+          'Referral code "$code" copied to clipboard!',
+          style: AppTypography.rawOnPrimaryBold,
+        ),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
       ),
@@ -60,31 +64,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.bgCardSolid,
-          shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedLg),
-          title: Text('CHANGE PASSWORD', style: AppTypography.headingMedium),
+          backgroundColor: AppColors.surface3,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppSpacing.roundedLg,
+            side: const BorderSide(color: AppColors.borderStrong),
+          ),
+          title: Text('Change Password', style: AppTypography.headingMedium),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: oldPasswordCtrl,
                 obscureText: true,
-                style: AppTypography.bodyMedium,
+                style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary),
                 decoration: const InputDecoration(labelText: 'Current Password'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: newPasswordCtrl,
                 obscureText: true,
-                style: AppTypography.bodyMedium,
-                decoration: const InputDecoration(labelText: 'New Password (min 8 chars)'),
+                style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  labelText: 'New Password (min 8 chars)',
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('CANCEL'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -112,20 +121,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         messenger.showSnackBar(
                           const SnackBar(
                             content: Text('Password updated successfully!'),
-                            backgroundColor: AppColors.accentGreen,
+                            backgroundColor: AppColors.success,
                           ),
                         );
                       } catch (e) {
                         setDialogState(() => isLoading = false);
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.danger),
+                          SnackBar(
+                            content: Text('Error: $e'),
+                            backgroundColor: AppColors.danger,
+                          ),
                         );
                       }
                     },
               child: isLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('UPDATE'),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Update'),
             ),
           ],
         ),
@@ -157,11 +173,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
-        title: Text('HUNTER PROFILE', style: AppTypography.headingMedium),
-        elevation: 0,
+        title: Text('Hunter Profile', style: AppTypography.headingMedium),
         actions: [
           IconButton(
-            icon: const Icon(Icons.lock_reset, color: AppColors.textSecondary),
+            icon: const Icon(AppIcons.lock, color: AppColors.textSecondary),
             tooltip: 'Change Password',
             onPressed: _showChangePasswordDialog,
           ),
@@ -172,33 +187,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Character Card
+            // Character Card (surface1 + hairline; violet only in badges)
             Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: AppColors.bgCardSolid,
+                color: AppColors.surface1,
                 borderRadius: AppSpacing.roundedLg,
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    blurRadius: 16,
-                  ),
-                ],
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: AppColors.primaryMuted,
+                    backgroundColor: AppColors.surface2,
                     child: Text(
                       displayName.isNotEmpty ? displayName[0].toUpperCase() : 'H',
-                      style: AppTypography.displayMedium.copyWith(color: AppColors.primary),
+                      style: AppTypography.displayMedium.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   Text(displayName, style: AppTypography.headingLarge),
-                  Text('$area, $district', style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted)),
+                  const SizedBox(height: 2),
+                  Text('$area, $district', style: AppTypography.bodySmall),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -208,7 +220,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       RankBadge.fromXP(xp),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.lg),
                   ExpBar(xpIntoLevel: xpInto, xpForNextLevel: xpNext),
                 ],
               ),
@@ -220,104 +232,115 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 Expanded(
                   child: StatCard(
-                    icon: Icons.local_fire_department,
+                    icon: AppIcons.flame,
                     label: 'CURRENT STREAK',
                     value: '$streak Days',
-                    iconColor: AppColors.orange,
+                    iconColor: AppColors.gold,
                     sublabel: 'Daily Protocol',
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: StatCard(
-                    icon: Icons.shield,
+                    icon: AppIcons.shield,
                     label: 'STREAK SHIELDS',
-                    value: '$shields Remaining',
+                    value: '$shields Left',
                     iconColor: AppColors.primary,
                     sublabel: 'Earn 1 every 7 days',
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.md),
 
             Row(
               children: [
                 Expanded(
                   child: StatCard(
-                    icon: Icons.military_tech,
+                    icon: AppIcons.award,
                     label: 'TOTAL XP',
                     value: '$xp',
-                    iconColor: AppColors.accentGold,
+                    iconColor: AppColors.gold,
                     sublabel: 'Lifetime Earned',
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: StatCard(
-                    icon: Icons.fitness_center,
+                    icon: AppIcons.arena,
                     label: 'DISTRICT RANK',
                     value: myRank != null ? '#${myRank.rank}' : '--',
-                    iconColor: AppColors.secondary,
+                    iconColor: AppColors.primary,
                     sublabel: district,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
 
-            // Territory Card (Tap to change)
-            Text('ASSIGNED TERRITORY', style: AppTypography.labelMedium),
-            const SizedBox(height: AppSpacing.xs),
+            // Territory Card
+            Text('ASSIGNED TERRITORY', style: AppTypography.labelSmall),
+            const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.bgCardSolid,
-                borderRadius: AppSpacing.roundedLg,
+                color: AppColors.surface1,
+                borderRadius: AppSpacing.roundedMd,
                 border: Border.all(color: AppColors.border),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, color: AppColors.primary, size: 24),
+                  const Icon(AppIcons.location, color: AppColors.primary, size: 22),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$area, $district', style: AppTypography.headingSmall),
-                        Text(stateName, style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted)),
+                        Text(
+                          '$area, $district',
+                          style: AppTypography.headingSmall.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        Text(stateName, style: AppTypography.bodySmall),
                       ],
                     ),
                   ),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const LocationSetupScreen(isModal: true),
+                  SizedBox(
+                    height: AppSpacing.minTouchTarget,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(84, AppSpacing.minTouchTarget),
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.borderStrong),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: AppSpacing.roundedMd,
                         ),
-                      );
-                    },
-                    child: const Text('CHANGE'),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const LocationSetupScreen(isModal: true),
+                          ),
+                        );
+                      },
+                      child: const Text('Change'),
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
 
             // Referral Code & Share Card
-            Text('REFERRAL RECRUITMENT', style: AppTypography.labelMedium),
-            const SizedBox(height: AppSpacing.xs),
+            Text('REFERRAL RECRUITMENT', style: AppTypography.labelSmall),
+            const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.bgCardSolid,
-                borderRadius: AppSpacing.roundedLg,
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                color: AppColors.surface1,
+                borderRadius: AppSpacing.roundedMd,
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -328,11 +351,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('YOUR RECRUIT CODE', style: AppTypography.bodySmall),
+                          Text('YOUR RECRUIT CODE', style: AppTypography.labelSmall),
+                          const SizedBox(height: 2),
                           Text(
                             referralCode,
-                            style: AppTypography.displayLarge.copyWith(
-                              fontSize: 24,
+                            style: AppTypography.statNumber.copyWith(
                               color: AppColors.primary,
                               letterSpacing: 2.0,
                             ),
@@ -340,7 +363,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.copy, color: AppColors.primary),
+                        icon: const Icon(AppIcons.copy, color: AppColors.primary),
                         tooltip: 'Copy Code',
                         onPressed: () => _copyReferralCode(referralCode),
                       ),
@@ -350,27 +373,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.share, size: 16),
-                          label: const Text('SHARE LINK'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(color: AppColors.primary),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          onPressed: () => _shareInvite(referralCode, displayName, area),
+                        child: SecondaryButton(
+                          text: 'Share Link',
+                          icon: AppIcons.share,
+                          onPressed: () =>
+                              _shareInvite(referralCode, displayName, area),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.copy, size: 16),
-                          label: const Text('COPY CODE'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.bgMain,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
+                        child: PrimaryButton(
+                          text: 'Copy Code',
+                          icon: AppIcons.copy,
                           onPressed: () => _copyReferralCode(referralCode),
                         ),
                       ),
@@ -379,47 +393,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
 
-            // Hunter Achievements Showcase
-            Text('ACHIEVEMENTS & BADGES', style: AppTypography.labelMedium),
-            const SizedBox(height: AppSpacing.xs),
+            // Achievements Showcase (Gold for unlocked achievements)
+            Text('ACHIEVEMENTS & BADGES', style: AppTypography.labelSmall),
+            const SizedBox(height: AppSpacing.sm),
             _buildAchievementTile(
               title: 'First Blood',
               description: 'Submit first verified challenge attempt',
-              icon: Icons.bolt,
+              icon: AppIcons.challenge,
               isUnlocked: (myRank?.bestReps ?? 0) > 0,
             ),
             _buildAchievementTile(
               title: 'Iron Will',
               description: 'Maintain a 7-day habit streak',
-              icon: Icons.local_fire_department,
+              icon: AppIcons.flame,
               isUnlocked: streak >= 7,
             ),
             _buildAchievementTile(
               title: 'Centurion Reps',
               description: 'Achieve 50+ reps in a single attempt',
-              icon: Icons.fitness_center,
+              icon: AppIcons.training,
               isUnlocked: (myRank?.bestReps ?? 0) >= 50,
             ),
             _buildAchievementTile(
               title: 'District Elite',
               description: 'Climb into the top 10 on your district leaderboard',
-              icon: Icons.emoji_events,
+              icon: AppIcons.arena,
               isUnlocked: myRank != null && myRank.rank <= 10,
             ),
             const SizedBox(height: AppSpacing.xl),
 
             // Logout Button
             SecondaryButton(
-              text: 'LOG OUT OF HUNTER SYSTEM',
-              icon: Icons.logout,
+              text: 'Log Out',
+              icon: Icons.logout_rounded,
               onPressed: () {
                 ref.read(authNotifierProvider.notifier).logout();
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
           ],
         ),
       ),
@@ -436,26 +450,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isUnlocked ? AppColors.bgCardSolid : AppColors.bgSidebar.withValues(alpha: 0.5),
+        color: AppColors.surface1,
         borderRadius: AppSpacing.roundedMd,
         border: Border.all(
-          color: isUnlocked ? AppColors.accentGold.withValues(alpha: 0.4) : AppColors.border,
+          color: isUnlocked
+              ? AppColors.gold.withValues(alpha: 0.4)
+              : AppColors.border,
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: isUnlocked
-                  ? AppColors.accentGold.withValues(alpha: 0.15)
-                  : AppColors.border.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+                  ? AppColors.gold.withValues(alpha: 0.14)
+                  : AppColors.surface2,
+              borderRadius: AppSpacing.roundedSm,
             ),
             child: Icon(
               icon,
-              color: isUnlocked ? AppColors.accentGold : AppColors.textMuted,
-              size: 24,
+              color: isUnlocked ? AppColors.gold : AppColors.textMuted,
+              size: 20,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -466,21 +483,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Text(
                   title,
                   style: AppTypography.headingSmall.copyWith(
-                    color: isUnlocked ? AppColors.textPrimary : AppColors.textMuted,
-                    fontSize: 15,
+                    color: isUnlocked
+                        ? AppColors.textPrimary
+                        : AppColors.textMuted,
                   ),
                 ),
-                Text(
-                  description,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-                ),
+                const SizedBox(height: 2),
+                Text(description, style: AppTypography.bodySmall),
               ],
             ),
           ),
           Icon(
-            isUnlocked ? Icons.check_circle : Icons.lock,
-            color: isUnlocked ? AppColors.accentGreen : AppColors.textMuted,
-            size: 20,
+            isUnlocked ? AppIcons.check : AppIcons.lock,
+            color: isUnlocked ? AppColors.success : AppColors.textMuted,
+            size: 18,
           ),
         ],
       ),

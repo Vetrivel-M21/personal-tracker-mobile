@@ -184,7 +184,7 @@ class _CreateCustomSplitDialogState extends State<CreateCustomSplitDialog> {
             backgroundColor: AppColors.primary,
             content: Text(
               'Custom Routine "$splitName" created and activated!',
-              style: const TextStyle(color: AppColors.bgMain, fontWeight: FontWeight.bold),
+              style: AppTypography.rawOnPrimaryBold,
             ),
           ),
         );
@@ -253,7 +253,7 @@ class _CreateCustomSplitDialogState extends State<CreateCustomSplitDialog> {
             ),
             if (_errorMessage != null) ...[
               const SizedBox(height: 8),
-              Text(_errorMessage!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+              Text(_errorMessage!, style: AppTypography.rawDangerSmall),
             ],
             const SizedBox(height: AppSpacing.md),
             Row(

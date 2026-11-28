@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/services/analytics_service.dart';
 import '../../../widgets/app_buttons.dart';
@@ -27,16 +29,24 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
 
   void _copyToClipboard(String code) {
     Clipboard.setData(ClipboardData(text: code));
+    HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Referral code "$code" copied to clipboard!'),
+        content: Text(
+          'Referral code "$code" copied to clipboard!',
+          style: AppTypography.rawOnPrimaryBold,
+        ),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  Future<void> _shareInviteLink(String code, String displayName, String? area) async {
+  Future<void> _shareInviteLink(
+    String code,
+    String displayName,
+    String? area,
+  ) async {
     final analytics = ref.read(analyticsServiceProvider);
     final message = InviteLinkService.buildInviteMessage(
       referralCode: code,
@@ -84,26 +94,32 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
     }
   }
 
-  void _showChallengeDialog(String referralCode, String displayName, String? area) {
+  void _showChallengeDialog(
+    String referralCode,
+    String displayName,
+    String? area,
+  ) {
     final repsController = TextEditingController(text: '30');
     String challengeExercise = _selectedExercise;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.bgCardSolid,
+      backgroundColor: AppColors.surface3,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusXl),
+        ),
       ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 24,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                left: AppSpacing.xl,
+                right: AppSpacing.xl,
+                top: AppSpacing.xl,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.xl,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -111,25 +127,23 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.flash_on_rounded, color: AppColors.accentGold),
-                      const SizedBox(width: 8),
+                      const Icon(AppIcons.challenge, color: AppColors.primary),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         'CHALLENGE A FRIEND',
-                        style: AppTypography.headingMedium.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTypography.headingMedium,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Set a target rep score and challenge your gym partner to beat it.',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // Exercise toggle
                   Row(
                     children: [
                       Expanded(
@@ -137,59 +151,54 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: challengeExercise == 'pushup'
                                 ? AppColors.primary
-                                : AppColors.bgSidebar,
+                                : AppColors.surface2,
                             foregroundColor: challengeExercise == 'pushup'
-                                ? AppColors.bgMain
+                                ? AppColors.onPrimary
                                 : AppColors.textPrimary,
+                            elevation: 0,
                           ),
-                          onPressed: () => setModalState(() => challengeExercise = 'pushup'),
+                          onPressed: () =>
+                              setModalState(() => challengeExercise = 'pushup'),
                           child: const Text('PUSH-UPS'),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: challengeExercise == 'pullup'
                                 ? AppColors.primary
-                                : AppColors.bgSidebar,
+                                : AppColors.surface2,
                             foregroundColor: challengeExercise == 'pullup'
-                                ? AppColors.bgMain
+                                ? AppColors.onPrimary
                                 : AppColors.textPrimary,
+                            elevation: 0,
                           ),
-                          onPressed: () => setModalState(() => challengeExercise = 'pullup'),
+                          onPressed: () =>
+                              setModalState(() => challengeExercise = 'pullup'),
                           child: const Text('PULL-UPS'),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // Target reps input
                   TextField(
                     controller: repsController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: AppColors.textPrimary),
+                    style: AppTypography.rawTextPrimary,
                     decoration: InputDecoration(
                       labelText: 'Target Reps to Beat',
-                      labelStyle: const TextStyle(color: AppColors.textSecondary),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
+                      labelStyle: AppTypography.rawTextSecondary,
                       filled: true,
-                      fillColor: AppColors.bgSidebar,
+                      fillColor: AppColors.surface2,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   PrimaryButton(
                     text: 'SEND 1-ON-1 CHALLENGE',
-                    icon: Icons.send_rounded,
+                    icon: AppIcons.share,
                     onPressed: () {
                       final targetReps = int.tryParse(repsController.text) ?? 25;
                       final analytics = ref.read(analyticsServiceProvider);
@@ -230,11 +239,9 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
       backgroundColor: AppColors.bgMain,
       appBar: AppBar(
         title: const Text('TERRITORY SQUAD & INVITES'),
-        backgroundColor: AppColors.bgMain,
-        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.people_alt_outlined, color: AppColors.primary),
+            icon: const Icon(AppIcons.squad, color: AppColors.textSecondary),
             tooltip: 'Hunters Directory',
             onPressed: () {
               Navigator.of(context).push(
@@ -243,7 +250,8 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
+            icon: const Icon(AppIcons.refresh, color: AppColors.textSecondary),
+            tooltip: 'Refresh',
             onPressed: () => ref.read(referralStatsProvider.notifier).refresh(),
           ),
         ],
@@ -254,20 +262,27 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
         ),
         error: (err, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 48),
-                const SizedBox(height: 12),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.danger,
+                  size: 44,
+                ),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   'Failed to load invite stats',
-                  style: AppTypography.headingSmall.copyWith(color: AppColors.textPrimary),
+                  style: AppTypography.headingSmall.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 PrimaryButton(
                   text: 'RETRY',
-                  onPressed: () => ref.read(referralStatsProvider.notifier).refresh(),
+                  onPressed: () =>
+                      ref.read(referralStatsProvider.notifier).refresh(),
                 ),
               ],
             ),
@@ -278,30 +293,26 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            backgroundColor: AppColors.bgCardSolid,
+            backgroundColor: AppColors.surface2,
             onRefresh: () => ref.read(referralStatsProvider.notifier).refresh(),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                104,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Referral Code Hero Card
+                  // 1. Referral Code Hero Card (surface1 + 1px hairline, no glow)
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(AppSpacing.xl),
                     decoration: BoxDecoration(
-                      color: AppColors.bgCardSolid,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          blurRadius: 16,
-                        ),
-                      ],
+                      color: AppColors.surface1,
+                      borderRadius: AppSpacing.roundedLg,
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       children: [
@@ -309,45 +320,49 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                           'YOUR EXCLUSIVE INVITE CODE',
                           style: AppTypography.badge.copyWith(
                             color: AppColors.primary,
-                            letterSpacing: 2,
+                            letterSpacing: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppSpacing.sm),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               code,
-                              style: AppTypography.displayMedium.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 4,
+                              style: AppTypography.statNumber.copyWith(
+                                fontSize: 28,
+                                letterSpacing: 3.5,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppSpacing.sm),
                             IconButton(
-                              icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
+                              icon: const Icon(
+                                AppIcons.copy,
+                                color: AppColors.primary,
+                              ),
                               tooltip: 'Copy Code',
                               onPressed: () => _copyToClipboard(code),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         Row(
                           children: [
                             Expanded(
                               child: PrimaryButton(
                                 text: 'SHARE LINK',
-                                icon: Icons.share_rounded,
-                                onPressed: () => _shareInviteLink(code, displayName, userArea),
+                                icon: AppIcons.share,
+                                onPressed: () =>
+                                    _shareInviteLink(code, displayName, userArea),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: SecondaryButton(
                                 text: 'CHALLENGE',
-                                icon: Icons.flash_on_rounded,
-                                onPressed: () => _showChallengeDialog(code, displayName, userArea),
+                                icon: AppIcons.challenge,
+                                onPressed: () =>
+                                    _showChallengeDialog(code, displayName, userArea),
                               ),
                             ),
                           ],
@@ -356,83 +371,88 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
-                  // 2. Growth Metric Bento Cards
+                  // 2. Growth Metric Cards
                   Row(
                     children: [
                       Expanded(
                         child: StatCard(
-                          icon: Icons.group_rounded,
+                          icon: AppIcons.squad,
                           label: 'FRIENDS JOINED',
                           value: '${stats.inviteCount}',
                           sublabel: 'Registered Athletes',
                           iconColor: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: StatCard(
-                          icon: Icons.verified_user_rounded,
+                          icon: AppIcons.check,
                           label: 'VERIFIED',
                           value: '${stats.verifiedInvitesCount}',
                           sublabel: 'Confirmed Email',
-                          iconColor: AppColors.accentGreen,
+                          iconColor: AppColors.success,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   StatCard(
-                    icon: Icons.military_tech_rounded,
+                    icon: AppIcons.award,
                     label: 'ACTIVE DISTRICT COMPETITORS',
                     value: '${stats.activeCompetitorsCount}',
                     sublabel: 'Submitted verified attempts',
-                    iconColor: AppColors.accentGold,
+                    iconColor: AppColors.gold,
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // 3. Share Card Preview & Generation Section
-                  Text(
-                    'SOCIAL SHARE CARD',
-                    style: AppTypography.headingMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Exercise toggle chips
+                  Text('SOCIAL SHARE CARD', style: AppTypography.labelSmall),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       ChoiceChip(
                         label: const Text('Push-ups'),
                         selected: _selectedExercise == 'pushup',
-                        selectedColor: AppColors.primary,
+                        selectedColor: AppColors.primaryMuted,
+                        backgroundColor: AppColors.surface2,
+                        side: BorderSide(
+                          color: _selectedExercise == 'pushup'
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
                         onSelected: (val) {
                           if (val) setState(() => _selectedExercise = 'pushup');
                         },
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       ChoiceChip(
                         label: const Text('Pull-ups'),
                         selected: _selectedExercise == 'pullup',
-                        selectedColor: AppColors.primary,
+                        selectedColor: AppColors.primaryMuted,
+                        backgroundColor: AppColors.surface2,
+                        side: BorderSide(
+                          color: _selectedExercise == 'pullup'
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
                         onSelected: (val) {
                           if (val) setState(() => _selectedExercise = 'pullup');
                         },
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Preview the high-contrast card that will be generated for your WhatsApp status or Instagram story.',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // ShareCard inside RepaintBoundary for PNG capture
                   Center(
                     child: RepaintBoundary(
                       key: _shareCardKey,
@@ -450,11 +470,13 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   PrimaryButton(
-                    text: _isSharing ? 'GENERATING IMAGE...' : 'SHARE CARD TO WHATSAPP / INSTA',
-                    icon: Icons.image_rounded,
+                    text: _isSharing
+                        ? 'GENERATING IMAGE...'
+                        : 'SHARE CARD TO WHATSAPP / INSTA',
+                    icon: AppIcons.share,
                     isLoading: _isSharing,
                     onPressed: () => _shareCardImage(
                       displayName: displayName,
@@ -466,7 +488,7 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xl),
                 ],
               ),
             ),

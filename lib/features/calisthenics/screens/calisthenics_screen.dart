@@ -190,7 +190,7 @@ class _CalisthenicsScreenState extends ConsumerState<CalisthenicsScreen>
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Confirm Unlock', style: TextStyle(color: AppColors.bgMain)),
+            child: Text('Confirm Unlock', style: AppTypography.rawOnPrimary),
           ),
         ],
       ),
@@ -205,7 +205,7 @@ class _CalisthenicsScreenState extends ConsumerState<CalisthenicsScreen>
             backgroundColor: AppColors.primary,
             content: Text(
               'Mastered ${skill.name}! Skill unlocked.',
-              style: const TextStyle(color: AppColors.bgMain, fontWeight: FontWeight.bold),
+              style: AppTypography.rawOnPrimaryBold,
             ),
           ),
         );
