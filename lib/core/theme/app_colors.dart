@@ -67,4 +67,11 @@ class AppColors {
   static const Color rankB = Color(0xFFF59E0B);
   static const Color rankA = Color(0xFFA855F7);
   static const Color rankS = Color(0xFF22D3EE);
+
+  // Leaderboard Podium & Surface Helpers
+  static const Color rankSilver = Color(0xFFE2E8F0);
+  static const Color rankBronze = Color(0xFFCD7F32);
+  static const Color navBarBg = Color(0xF2090D18);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
 }

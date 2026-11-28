@@ -224,9 +224,8 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
                       selected: isSelected,
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.bgCardSolid,
-                      labelStyle: TextStyle(
-                        color: isSelected ? AppColors.bgMain : AppColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                      labelStyle: AppTypography.rawChipLabelDefault(
+                        isSelected ? AppColors.bgMain : AppColors.textPrimary,
                       ),
                       onSelected: (_) {
                         setState(() {
@@ -241,9 +240,8 @@ class _LocationSetupScreenState extends ConsumerState<LocationSetupScreen> {
                     selected: _isCustomArea,
                     selectedColor: AppColors.primary,
                     backgroundColor: AppColors.bgCardSolid,
-                    labelStyle: TextStyle(
-                      color: _isCustomArea ? AppColors.bgMain : AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                    labelStyle: AppTypography.rawChipLabelDefault(
+                      _isCustomArea ? AppColors.bgMain : AppColors.textPrimary,
                     ),
                     onSelected: (_) {
                       setState(() => _isCustomArea = true);

@@ -340,7 +340,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('👏', style: TextStyle(fontSize: 14)),
+                  const Text('👏', style: AppTypography.rawEmojiSmall),
                   const SizedBox(width: 4),
                   Text(
                     '${user.kudosCount}',

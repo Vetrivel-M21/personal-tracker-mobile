@@ -103,5 +103,51 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     letterSpacing: 0.5,
   );
+
+  // Tokenized inline styles (Phase 1 cleanup — preserves exact visual output)
+  static const TextStyle rawOnPrimary = TextStyle(color: AppColors.bgMain);
+  static const TextStyle rawOnPrimaryBold = TextStyle(
+    color: AppColors.bgMain,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle rawBold = TextStyle(fontWeight: FontWeight.bold);
+  static const TextStyle rawPrimaryBold = TextStyle(
+    color: AppColors.primary,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle rawDangerText = TextStyle(color: AppColors.danger);
+  static const TextStyle rawDangerSmall = TextStyle(
+    color: AppColors.danger,
+    fontSize: 12,
+  );
+  static const TextStyle rawTextPrimary = TextStyle(color: AppColors.textPrimary);
+  static const TextStyle rawTextSecondary = TextStyle(color: AppColors.textSecondary);
+  static const TextStyle rawTextMuted = TextStyle(color: AppColors.textMuted);
+  static const TextStyle rawHintMicro = TextStyle(
+    color: AppColors.textMuted,
+    fontSize: 11,
+  );
+  static const TextStyle rawEmojiSmall = TextStyle(fontSize: 14);
+  static const TextStyle rawPrefixBullet = TextStyle(
+    color: AppColors.primary,
+    fontSize: 12,
+  );
+  static const TextStyle rawPoseAngle = TextStyle(
+    color: AppColors.textPrimary,
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    backgroundColor: AppColors.bgCardSolid,
+  );
+
+  static TextStyle rawChipLabel(Color color) => TextStyle(
+        color: color,
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+      );
+
+  static TextStyle rawChipLabelDefault(Color color) => TextStyle(
+        color: color,
+        fontWeight: FontWeight.w600,
+      );
 }
 

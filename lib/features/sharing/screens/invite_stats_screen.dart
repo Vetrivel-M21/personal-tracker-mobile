@@ -169,10 +169,10 @@ class _InviteStatsScreenState extends ConsumerState<InviteStatsScreen> {
                   TextField(
                     controller: repsController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: AppColors.textPrimary),
+                    style: AppTypography.rawTextPrimary,
                     decoration: InputDecoration(
                       labelText: 'Target Reps to Beat',
-                      labelStyle: const TextStyle(color: AppColors.textSecondary),
+                      labelStyle: AppTypography.rawTextSecondary,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: AppColors.border),

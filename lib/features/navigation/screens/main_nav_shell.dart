@@ -95,7 +95,7 @@ class _MainNavShellState extends State<MainNavShell> {
         child: Container(
           height: 66,
           decoration: BoxDecoration(
-            color: const Color(0xF2090D18),
+            color: AppColors.navBarBg,
             borderRadius: BorderRadius.circular(33),
             border: Border.all(
               color: AppColors.primary.withValues(alpha: 0.28),
@@ -109,7 +109,7 @@ class _MainNavShellState extends State<MainNavShell> {
                 offset: const Offset(0, 4),
               ),
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: AppColors.black.withValues(alpha: 0.5),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),

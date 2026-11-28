@@ -216,7 +216,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
               ),
               onPressed: () => setState(() => _selectedSection = 1),
               icon: const Icon(Icons.playlist_play),
-              label: const Text('BROWSE PRESETS & ROUTINES', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text('BROWSE PRESETS & ROUTINES', style: AppTypography.rawBold),
             ),
             const SizedBox(height: AppSpacing.sm),
             OutlinedButton.icon(
@@ -227,7 +227,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
               ),
               onPressed: () => _openCreateCustomDialog(notifier),
               icon: const Icon(Icons.add),
-              label: const Text('CREATE CUSTOM ROUTINE', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text('CREATE CUSTOM ROUTINE', style: AppTypography.rawBold),
             ),
           ],
         ),
@@ -266,7 +266,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
                   ),
                   onPressed: () => _startSessionForDay(split, day),
                   icon: const Icon(Icons.play_arrow, size: 20),
-                  label: const Text('LOG SESSION', style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: const Text('LOG SESSION', style: AppTypography.rawBold),
                 ),
               ],
             ),
@@ -384,7 +384,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
                 ),
                 onPressed: () => _openCreateCustomDialog(notifier),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('BUILD', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('BUILD', style: AppTypography.rawBold),
               ),
             ],
           ),
@@ -444,7 +444,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
                             await notifier.activateSplit(s.id);
                             setState(() => _selectedSection = 0);
                           },
-                          child: const Text('ACTIVATE', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          child: const Text('ACTIVATE', style: AppTypography.rawPrimaryBold),
                         ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20),
@@ -457,7 +457,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
                               content: Text('Delete "${s.name}"? This cannot be undone.'),
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL')),
-                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('DELETE', style: TextStyle(color: AppColors.danger))),
+                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('DELETE', style: AppTypography.rawDangerText)),
                               ],
                             ),
                           );
@@ -522,7 +522,7 @@ class _WorkoutSplitsScreenState extends ConsumerState<WorkoutSplitsScreen>
                       await notifier.createSplitFromTemplate(t.name, t.id);
                       setState(() => _selectedSection = 0);
                     },
-                    child: const Text('ADOPT & ACTIVATE ROUTINE', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text('ADOPT & ACTIVATE ROUTINE', style: AppTypography.rawBold),
                   ),
                 ),
               ],

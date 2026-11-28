@@ -30,7 +30,7 @@ class LevelBadge extends StatelessWidget {
       child: Text(
         'LVL $level',
         style: AppTypography.badge.copyWith(
-          color: Colors.white,
+          color: AppColors.white,
           fontWeight: FontWeight.w800,
         ),
       ),

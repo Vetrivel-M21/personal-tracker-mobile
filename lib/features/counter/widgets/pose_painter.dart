@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import '../engine/rep_counter_engine.dart';
 
 class PosePainter extends CustomPainter {
@@ -87,12 +88,7 @@ class PosePainter extends CustomPainter {
   void _drawAngleBadge(Canvas canvas, Offset position, double angle) {
     final textSpan = TextSpan(
       text: '${angle.round()}°',
-      style: const TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        backgroundColor: AppColors.bgCardSolid,
-      ),
+      style: AppTypography.rawPoseAngle,
     );
 
     final textPainter = TextPainter(

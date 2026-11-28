@@ -171,10 +171,8 @@ class LeaderboardScreen extends ConsumerWidget {
       side: BorderSide(
         color: isSelected ? AppColors.primary : AppColors.border,
       ),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
+      labelStyle: AppTypography.rawChipLabel(
+        isSelected ? AppColors.primary : AppColors.textSecondary,
       ),
       onSelected: (_) => notifier.setScope(scopeValue),
     );
@@ -195,10 +193,8 @@ class LeaderboardScreen extends ConsumerWidget {
       side: BorderSide(
         color: isSelected ? AppColors.secondary : AppColors.border,
       ),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.secondary : AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
+      labelStyle: AppTypography.rawChipLabel(
+        isSelected ? AppColors.secondary : AppColors.textSecondary,
       ),
       onSelected: (_) => notifier.setPeriod(periodValue),
     );
@@ -363,9 +359,9 @@ class LeaderboardScreen extends ConsumerWidget {
     if (rank == 1) {
       rankColor = AppColors.accentGold;
     } else if (rank == 2) {
-      rankColor = const Color(0xFFE2E8F0); // Silver
+      rankColor = AppColors.rankSilver; // Silver
     } else if (rank == 3) {
-      rankColor = const Color(0xFFCD7F32); // Bronze
+      rankColor = AppColors.rankBronze; // Bronze
     } else {
       rankColor = AppColors.textMuted;
     }

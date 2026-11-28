@@ -463,7 +463,7 @@ class _FocusToolsScreenState extends ConsumerState<FocusToolsScreen>
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     color: AppColors.danger,
-                    child: const Icon(Icons.delete, color: Colors.white),
+                    child: const Icon(Icons.delete, color: AppColors.white),
                   ),
                   onDismissed: (_) => _deleteTodo(t.id),
                   child: Container(
