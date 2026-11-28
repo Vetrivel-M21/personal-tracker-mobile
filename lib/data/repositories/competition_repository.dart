@@ -12,8 +12,13 @@ class CompetitionRepository {
     required String exercise,
     required String scope,
     required String period,
+    int? page,
+    int? pageSize,
     int limit = 20,
     int offset = 0,
+    String? countryCode,
+    String? region,
+    String? city,
     String? area,
     String? district,
     String? state,
@@ -22,9 +27,19 @@ class CompetitionRepository {
       'exercise': exercise,
       'scope': scope,
       'period': period,
-      'limit': limit,
-      'offset': offset,
     };
+    if (page != null && pageSize != null) {
+      queryParams['page'] = page;
+      queryParams['page_size'] = pageSize;
+    } else {
+      queryParams['limit'] = limit;
+      queryParams['offset'] = offset;
+    }
+    if (countryCode != null && countryCode.isNotEmpty) {
+      queryParams['country_code'] = countryCode;
+    }
+    if (region != null && region.isNotEmpty) queryParams['region'] = region;
+    if (city != null && city.isNotEmpty) queryParams['city'] = city;
     if (area != null && area.isNotEmpty) queryParams['area'] = area;
     if (district != null && district.isNotEmpty) queryParams['district'] = district;
     if (state != null && state.isNotEmpty) queryParams['state'] = state;
@@ -35,6 +50,30 @@ class CompetitionRepository {
     );
 
     return LeaderboardResponseModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Fetches prefix location suggestions for region or city.
+  Future<List<String>> suggestLocations({
+    required String type,
+    String? countryCode,
+    String query = '',
+  }) async {
+    final queryParams = <String, dynamic>{
+      'type': type,
+      'q': query,
+    };
+    if (countryCode != null && countryCode.isNotEmpty) {
+      queryParams['country_code'] = countryCode;
+    }
+
+    final response = await apiClient.dio.get(
+      '/api/locations/suggest',
+      queryParameters: queryParams,
+    );
+
+    final data = response.data as Map<String, dynamic>? ?? {};
+    final list = data['suggestions'] as List<dynamic>? ?? [];
+    return list.map((e) => e.toString()).toList();
   }
 
   /// Submits a new max-rep push-up or pull-up attempt.
@@ -72,18 +111,20 @@ class CompetitionRepository {
     return ReferralStatsModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Updates user location (State, District, Area) through profile update.
+  /// Updates user global location through profile update.
   Future<UserModel> updateProfileLocation({
     required String displayName,
-    required String state,
-    required String district,
-    required String area,
+    required String countryCode,
+    required String region,
+    required String city,
+    bool locationVisible = true,
   }) async {
     final payload = {
       'display_name': displayName,
-      'state': state,
-      'district': district,
-      'area': area,
+      'country_code': countryCode,
+      'region': region,
+      'city': city,
+      'location_visible': locationVisible,
     };
 
     final response = await apiClient.dio.patch(

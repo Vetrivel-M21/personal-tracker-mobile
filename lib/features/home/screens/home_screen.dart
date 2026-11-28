@@ -43,8 +43,8 @@ class HomeScreen extends ConsumerWidget {
     final xp = user?.xp ?? 0;
     final xpInto = user?.xpIntoLevel ?? 0;
     final xpNext = user?.xpForNextLevel ?? 100;
-    final area = user?.area ?? 'Not Set';
-    final district = user?.district ?? 'Tamil Nadu';
+    final locationDisplay = user?.locationDisplay ?? 'Location Not Set';
+    final scopeLabel = user?.city ?? user?.district ?? user?.countryCode ?? 'Global';
     final myRank = leaderboardState.data?.myRank;
 
     final totalHabits = habitsState.habits.length;
@@ -158,9 +158,9 @@ class HomeScreen extends ConsumerWidget {
                     Expanded(
                       child: StatCard(
                         icon: AppIcons.arena,
-                        label: 'DISTRICT RANK',
+                        label: 'TERRITORY RANK',
                         value: myRank != null ? '#${myRank.rank}' : '--',
-                        sublabel: district,
+                        sublabel: scopeLabel,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -183,8 +183,7 @@ class HomeScreen extends ConsumerWidget {
                 index: 3,
                 child: _buildTerritoryTile(
                   context: context,
-                  area: area,
-                  district: district,
+                  locationDisplay: locationDisplay,
                   rankText: myRank != null ? 'Rank #${myRank.rank}' : 'Set Ranks',
                 ),
               ),
@@ -275,8 +274,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildTerritoryTile({
     required BuildContext context,
-    required String area,
-    required String district,
+    required String locationDisplay,
     required String rankText,
   }) {
     return Material(
@@ -322,7 +320,7 @@ class HomeScreen extends ConsumerWidget {
                       Text('LOCAL TERRITORY', style: AppTypography.labelSmall),
                       const SizedBox(height: 2),
                       Text(
-                        '$area, $district',
+                        locationDisplay,
                         style: AppTypography.headingSmall.copyWith(
                           color: AppColors.textPrimary,
                         ),

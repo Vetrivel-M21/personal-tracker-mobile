@@ -166,9 +166,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final streak = streakStats.currentStreak;
     final shields = streakStats.shieldsRemaining;
     final referralCode = user?.referralCode ?? 'TNCHAMP';
-    final area = user?.area ?? 'Not Set';
-    final district = user?.district ?? 'Tamil Nadu';
-    final stateName = user?.state ?? 'Tamil Nadu';
+    final locationDisplay = user?.locationDisplay ?? 'Location Not Set';
+    final area = user?.city ?? user?.area ?? 'Not Set';
+    final district = user?.region ?? user?.district ?? 'Global';
+    final stateName = user?.countryCode ?? user?.state ?? 'World';
 
     return Scaffold(
       backgroundColor: AppColors.bgMain,
@@ -210,7 +211,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: AppSpacing.md),
                   Text(displayName, style: AppTypography.headingLarge),
                   const SizedBox(height: 2),
-                  Text('$area, $district', style: AppTypography.bodySmall),
+                  Text(locationDisplay, style: AppTypography.bodySmall),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

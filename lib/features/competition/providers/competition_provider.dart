@@ -10,12 +10,12 @@ final competitionRepositoryProvider = Provider<CompetitionRepository>((ref) {
 
 class LeaderboardFilter {
   final String exercise; // 'pushup' | 'pullup'
-  final String scope; // 'district' | 'area' | 'state' | 'all'
+  final String scope; // 'global' | 'country' | 'region' | 'city'
   final String period; // 'all_time' | 'week'
 
   const LeaderboardFilter({
     this.exercise = 'pushup',
-    this.scope = 'district',
+    this.scope = 'global',
     this.period = 'all_time',
   });
 
@@ -80,8 +80,8 @@ class LeaderboardNotifier extends StateNotifier<LeaderboardState> {
         exercise: state.filter.exercise,
         scope: state.filter.scope,
         period: state.filter.period,
-        limit: 50,
-        offset: 0,
+        page: 1,
+        pageSize: 50,
       );
       state = state.copyWith(isLoading: false, data: res, errorMessage: null);
     } catch (e) {

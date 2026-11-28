@@ -138,8 +138,9 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('SET YOUR TERRITORY'), findsOneWidget);
-      expect(find.text('STATE'), findsOneWidget);
-      expect(find.text('DISTRICT'), findsOneWidget);
+      expect(find.text('COUNTRY'), findsOneWidget);
+      expect(find.text('REGION / STATE'), findsOneWidget);
+      expect(find.text('CITY'), findsOneWidget);
       expect(find.text('ENTER ARENA'), findsOneWidget);
     });
 

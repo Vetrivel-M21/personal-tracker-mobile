@@ -72,6 +72,9 @@ class LeaderboardEntryModel {
   final String? area;
   final String? district;
   final String? state;
+  final String? countryCode;
+  final String? region;
+  final String? city;
   final int bestReps;
 
   const LeaderboardEntryModel({
@@ -82,12 +85,22 @@ class LeaderboardEntryModel {
     this.area,
     this.district,
     this.state,
+    this.countryCode,
+    this.region,
+    this.city,
     required this.bestReps,
   });
 
   String get locationLabel {
-    final parts = [area, district, state].where((p) => p != null && p.isNotEmpty).toList();
-    return parts.isEmpty ? 'Tamil Nadu' : parts.join(', ');
+    final globalParts = [city, region, countryCode]
+        .where((p) => p != null && p.isNotEmpty)
+        .toList();
+    if (globalParts.isNotEmpty) return globalParts.join(', ');
+
+    final legacyParts = [area, district, state]
+        .where((p) => p != null && p.isNotEmpty)
+        .toList();
+    return legacyParts.isEmpty ? 'Global' : legacyParts.join(', ');
   }
 
   factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
@@ -99,6 +112,9 @@ class LeaderboardEntryModel {
       area: json['area'] as String?,
       district: json['district'] as String?,
       state: json['state'] as String?,
+      countryCode: json['country_code'] as String?,
+      region: json['region'] as String?,
+      city: json['city'] as String?,
       bestReps: json['best_reps'] as int? ?? 0,
     );
   }
@@ -112,6 +128,9 @@ class LeaderboardEntryModel {
       'area': area,
       'district': district,
       'state': state,
+      'country_code': countryCode,
+      'region': region,
+      'city': city,
       'best_reps': bestReps,
     };
   }
@@ -123,6 +142,8 @@ class LeaderboardResponseModel {
   final String scope;
   final String period;
   final int total;
+  final int page;
+  final int pageSize;
   final int limit;
   final int offset;
   final List<LeaderboardEntryModel> entries;
@@ -133,6 +154,8 @@ class LeaderboardResponseModel {
     required this.scope,
     required this.period,
     required this.total,
+    this.page = 1,
+    this.pageSize = 50,
     required this.limit,
     required this.offset,
     required this.entries,
@@ -152,9 +175,11 @@ class LeaderboardResponseModel {
 
     return LeaderboardResponseModel(
       exercise: json['exercise'] as String? ?? 'pushup',
-      scope: json['scope'] as String? ?? 'district',
+      scope: json['scope'] as String? ?? 'global',
       period: json['period'] as String? ?? 'all_time',
       total: json['total'] as int? ?? 0,
+      page: json['page'] as int? ?? 1,
+      pageSize: json['page_size'] as int? ?? (json['limit'] as int? ?? 50),
       limit: json['limit'] as int? ?? 20,
       offset: json['offset'] as int? ?? 0,
       entries: entries,
